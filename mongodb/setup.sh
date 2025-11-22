@@ -2,76 +2,63 @@
 set -e
 
 echo "=============================================="
-echo "   Universal Installer: MongoDB + Benchmark   "
-echo "   Supports: Ubuntu, Debian, CentOS, RHEL,    "
-echo "            Rocky, AlmaLinux                  "
+echo "     MongoDB + Golang + Benchmark Installer    "
+echo "   Supports: CentOS 9 / RHEL 9 / Ubuntu 24.04  "
 echo "=============================================="
 
-# -------- Detect OS ----------
+# -------- Detect OS --------
+source /etc/os-release
+DISTRO=$ID
+VERSION=$VERSION_ID
+CODENAME=${VERSION_CODENAME:-noble}
 
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    DISTRO=$ID
-    VERSION=$VERSION_ID
-else
-    echo "❌ Unable to detect operating system."
-    exit 1
-fi
+echo "➡️ Detected: $DISTRO ($VERSION)"
 
-echo "➡️ Detected OS: $DISTRO ($VERSION)"
+# -----------------------------------------------------
+#   SECTION 1 — INSTALL DEPENDENCIES
+# -----------------------------------------------------
 
+install_ubuntu_deps() {
+    echo "🔹 Updating apt..."
+    sudo apt update -y
 
-# -------- UTILITY FUNCTIONS  ---------
-
-install_common_packages() {
-    echo "🔹 Installing common build tools..."
-    case "$DISTRO" in
-        ubuntu|debian)
-            sudo apt update -y
-            sudo apt install -y wget curl git make gcc g++ pkg-config
-            ;;
-        centos|rhel|rocky|almalinux)
-            sudo dnf install -y wget curl git make gcc gcc-c++ pkgconfig
-            ;;
-    esac
+    echo "🔹 Installing dependencies..."
+    sudo apt install -y wget curl gnupg git make gcc g++ tar
 }
 
-install_golang() {
-    echo "🔹 Installing Golang..."
-    case "$DISTRO" in
-        ubuntu|debian)
-            sudo apt install -y golang
-            ;;
-        centos|rhel|rocky|almalinux)
-            sudo dnf install -y golang
-            ;;
-    esac
-
-    echo "✔ Go version: $(go version)"
+install_centos_deps() {
+    echo "🔹 Installing dependencies..."
+    sudo dnf install -y wget curl git make gcc gcc-c++ tar
 }
 
-# -------- Install MongoDB (Different for Ubuntu vs RHEL family) ---------
+# -----------------------------------------------------
+#   SECTION 2 — INSTALL MONGODB
+# -----------------------------------------------------
 
 install_mongodb_ubuntu() {
-    echo "🔹 Installing MongoDB 7.0 for Ubuntu/Debian..."
+    echo "🔹 Installing MongoDB 7.0 for Ubuntu 24.04..."
 
-    curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-        sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+    # MongoDB does NOT support Ubuntu 24.04 yet — use jammy repo
+    CODENAME=jammy
 
-    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu ${VERSION_CODENAME}/mongodb-org/7.0 multiverse" \
+    curl -fsSL https://pgp.mongodb.com/server-7.0.asc \
+        | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
+https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/7.0 multiverse" \
         | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 
     sudo apt update -y
     sudo apt install -y mongodb-org
 }
 
-install_mongodb_rhel() {
-    echo "🔹 Installing MongoDB 7.0 for RHEL/CentOS/Rocky/Alma..."
+install_mongodb_centos() {
+    echo "🔹 Installing MongoDB 7.0 for CentOS 9..."
 
-    sudo tee /etc/yum.repos.d/mongodb-org-7.0.repo > /dev/null <<EOF
+    sudo tee /etc/yum.repos.d/mongodb-org-7.0.repo >/dev/null <<EOF
 [mongodb-org-7.0]
 name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/${VERSION%%.*}/mongodb-org/7.0/x86_64/
+baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
 gpgcheck=1
 enabled=1
 gpgkey=https://pgp.mongodb.com/server-7.0.asc
@@ -80,51 +67,83 @@ EOF
     sudo dnf install -y mongodb-org
 }
 
-# -------- Install MongoDB Depending on OS ---------
+# -----------------------------------------------------
+#   SECTION 3 — ENABLE MONGODB SERVICE
+# -----------------------------------------------------
 
-if [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-    install_mongodb_ubuntu
-else
-    install_mongodb_rhel
-fi
+enable_mongodb() {
+    echo "🔹 Enabling + Starting MongoDB..."
+    sudo systemctl enable mongod
+    sudo systemctl start mongod
+    sudo systemctl status mongod --no-pager || true
 
-# -------- Enable MongoDB ---------
+    mongosh --version || { echo "❌ MongoDB installation failed"; exit 1; }
+    echo "✔ MongoDB installed!"
+}
 
-echo "🔹 Enabling and starting MongoDB..."
-sudo systemctl enable mongod
-sudo systemctl start mongod
+# -----------------------------------------------------
+#   SECTION 4 — INSTALL GOLANG
+# -----------------------------------------------------
 
-echo "🔹 Checking MongoDB Status..."
-sudo systemctl status mongod --no-pager
+install_golang_ubuntu() {
+    sudo apt install -y golang
+}
 
-mongosh --version || { echo "❌ MongoDB installation failed"; exit 1; }
-echo "✔ MongoDB Installed Successfully!"
+install_golang_centos() {
+    sudo dnf install -y golang
+}
 
+# -----------------------------------------------------
+#   SECTION 5 — CLONE & BUILD BENCHMARK TOOL
+# -----------------------------------------------------
 
-# -------- Install Build Tools + Golang ---------
+install_benchmark() {
+    echo "🚀 Cloning benchmark repo..."
+    git clone https://github.com/idealo/mongodb-benchmarking.git || true
 
-install_common_packages
-install_golang
+    cd mongodb-benchmarking
 
+    echo "🔹 Running make build..."
+    make build
 
-# -------- Clone & Build Benchmark Repository ---------
+    cd ..
+    echo "✔ Benchmark built successfully!"
+}
 
-echo "🚀 Cloning MongoDB Benchmarking repo..."
-git clone https://github.com/idealo/mongodb-benchmarking.git || true
+# -----------------------------------------------------
+#   MAIN LOGIC
+# -----------------------------------------------------
 
-cd mongodb-benchmarking
-
-echo "🔹 Running make build..."
-make build
+case "$DISTRO" in
+    ubuntu)
+        if [[ "$VERSION" != "24.04" ]]; then
+            echo "❌ This script only supports Ubuntu 24.04"
+            exit 1
+        fi
+        install_ubuntu_deps
+        install_mongodb_ubuntu
+        enable_mongodb
+        install_golang_ubuntu
+        install_benchmark
+        ;;
+    centos|rhel|rocky|almalinux)
+        install_centos_deps
+        install_mongodb_centos
+        enable_mongodb
+        install_golang_centos
+        install_benchmark
+        ;;
+    *)
+        echo "❌ Unsupported OS: $DISTRO"
+        echo "   Supported: Ubuntu 24.04, CentOS/RHEL/Rocky 9"
+        exit 1
+        ;;
+esac
 
 echo "=============================================="
-echo "       🎉 Installation Completed Successfully! "
+echo "✔ Installation Completed Successfully!"
 echo "----------------------------------------------"
 echo " MongoDB running on port 27017"
-echo " Go version: $(go version)"
-echo " Benchmark tool compiled: mongodb-benchmarking/"
-echo ""
-echo " To run benchmark:"
-echo "     cd mongodb-benchmarking"
-echo "     ./mongo-bench --help"
+echo " Benchmark: ./mongodb-benchmarking/mongo-bench"
+echo " Golang: $(go version)"
 echo "=============================================="
