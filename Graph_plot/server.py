@@ -37,60 +37,40 @@ async def root():
 # WebSocket: streams JSON from your shell script
 # ---------------------------------------------------------
 @app.websocket("/ws")
-async def ws_perf(ws: WebSocket):
+async def ws_dashboard(ws: WebSocket):
+    """Dashboard viewer connection - receives data broadcast from agents"""
     await ws.accept()
     active_connections.add(ws)
-    print(f"[SERVER] WebSocket connection accepted. Total connections: {len(active_connections)}")
+    print(f"[SERVER] Dashboard connection accepted. Total connections: {len(active_connections)}")
 
     try:
-        # Run the generic benchmark runner with default config
-        process = await asyncio.create_subprocess_exec(
-            "./generic_runner.sh",
-            "benchmark_config.sh",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.STDOUT
-        )
-        print("[SERVER] Generic benchmark runner started")
-
-        # Stream each line of output
+        # Keep connection open - receive messages if any (though dashboard doesn't send any)
+        # Data will be broadcast to this connection from /ws/agent endpoint
         while True:
-            line = await process.stdout.readline()
-            if not line:
-                break
-
-            text = line.decode().strip()
-
-            # Debug print everything (optional)
-            print("[SCRIPT]", text)
-
-            # Only forward valid JSON to the browser dashboard
-            if text.startswith("{") and text.endswith("}"):
+            try:
+                # Wait for message with timeout to keep connection alive
+                message = await asyncio.wait_for(ws.receive_text(), timeout=30.0)
+                # Dashboard doesn't send messages, but just in case
+                print(f"[DEBUG] Dashboard sent: {message}")
+            except asyncio.TimeoutError:
+                # No message in 30s, that's fine - connection is still alive
+                # Send a ping to keep connection alive
                 try:
-                    data = json.loads(text)
-                    # Broadcast to all connected clients
-                    for connection in active_connections:
-                        try:
-                            await connection.send_json(data)
-                        except:
-                            pass
-                    print(f"[SERVER] Sent data: machine={data.get('machine')}, cores={data.get('cores')}, kpi={data.get('requests') or data.get('bandwidth') or data.get('kpi')}")
-                except Exception as e:
-                    print(f"[ERROR] JSON parse error: {e} - Line: {text}")
-
-        # Wait for process to complete
-        await process.wait()
-        print(f"[SERVER] MLC script completed with exit code: {process.returncode}")
-        
+                    await ws.send_json({"type": "ping"})
+                except:
+                    break
+            
+    except WebSocketDisconnect:
+        print("[SERVER] Dashboard disconnected")
     except Exception as e:
-        print(f"[ERROR] WebSocket error: {e}")
+        print(f"[ERROR] Dashboard WebSocket error: {e}")
     finally:
-        # When script exits, close WebSocket
         active_connections.discard(ws)
         try:
             await ws.close()
         except:
             pass
-        print(f"[SERVER] WebSocket connection closed. Remaining connections: {len(active_connections)}")
+        print(f"[SERVER] Dashboard connection closed. Remaining connections: {len(active_connections)}")
 
 
 # ---------------------------------------------------------
@@ -168,11 +148,13 @@ async def ws_agent(ws: WebSocket):
                             pass
                 else:
                     # Benchmark data - broadcast to all dashboards
+                    print(f"[DEBUG] Broadcasting to {len(active_connections)} dashboard(s)")
                     for connection in active_connections:
                         try:
                             await connection.send_json(message)
-                        except:
-                            pass
+                            print(f"[DEBUG] Sent data to dashboard: {message}")
+                        except Exception as e:
+                            print(f"[DEBUG] Failed to send to dashboard: {e}")
                     
                     # Log if it's benchmark data
                     if 'cores' in message:

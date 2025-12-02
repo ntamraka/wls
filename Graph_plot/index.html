@@ -552,8 +552,10 @@ function connect() {
   };
   
   ws.onmessage = (event) => {
+    console.log('[DASHBOARD] Received message:', event.data);
     try {
       const msg = JSON.parse(event.data);
+      console.log('[DASHBOARD] Parsed message:', msg);
       
       // Handle agent list updates
       if (msg.type === 'agent_list') {
@@ -570,11 +572,14 @@ function connect() {
       // Skip non-benchmark messages
       const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
       if (!msg.cores || !kpiValue) {
+        console.log('[DASHBOARD] Skipping message - missing cores or kpi:', msg);
         return;
       }
       
       const machineId = msg.machine || msg.host || 'unknown';
       const label = `${machineId}-${msg.cores}c`;
+      
+      console.log('[DASHBOARD] Adding data point:', { machineId, cores: msg.cores, kpi: kpiValue });
       
       testCount++;
       
