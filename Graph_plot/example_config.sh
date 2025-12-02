@@ -16,22 +16,20 @@ SCRIPT_ARGS="--threads {CORES} --duration 10"
 
 # Example 1: Using regex to extract metrics from output like:
 #   "Throughput: 1234.5 ops/sec"
-#   "Latency: 56.7 ms"
+#   "KPI: 12345"
 EXTRACTION_METHOD="regex"
 
 REGEX_PATTERNS=(
+    "kpi:KPI:[[:space:]]*([0-9.]+)"
     "throughput:Throughput:[[:space:]]*([0-9.]+)"
-    "latency:Latency:[[:space:]]*([0-9.]+)"
-    "bandwidth:Bandwidth:[[:space:]]*([0-9.]+)"
 )
 
 # Example 2: Using grep + awk for structured output like:
-#   "RESULT 12345 67.8 90.1"
+#   "RESULT 12345 67.8"
 # EXTRACTION_METHOD="grep"
 # GREP_AWK_PATTERNS=(
-#     "bandwidth:^RESULT:2"
-#     "latency:^RESULT:3"
-#     "throughput:^RESULT:4"
+#     "kpi:^RESULT:2"
+#     "throughput:^RESULT:3"
 # )
 
 # ==============================================================================

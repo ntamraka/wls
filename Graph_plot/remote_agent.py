@@ -14,6 +14,15 @@ import json
 import sys
 import socket
 import signal
+import os
+
+# Disable proxy for WebSocket connections
+os.environ.pop('http_proxy', None)
+os.environ.pop('https_proxy', None)
+os.environ.pop('HTTP_PROXY', None)
+os.environ.pop('HTTPS_PROXY', None)
+os.environ.pop('all_proxy', None)
+os.environ.pop('ALL_PROXY', None)
 
 class RemoteAgent:
     def __init__(self, server_url, machine_id, config_file="benchmark_config.sh"):

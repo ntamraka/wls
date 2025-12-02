@@ -1,4 +1,4 @@
-# MLC Benchmark Dashboard
+# Multi-Machine Benchmark Dashboard
 
 A real-time, multi-machine benchmark dashboard with centralized control. Run any benchmark script on multiple systems and visualize results in one place.
 

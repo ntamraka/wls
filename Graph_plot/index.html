@@ -277,7 +277,7 @@
   <div class="container">
     <div class="header">
       <h1>⚡ Real-Time MLC NUMA Scaling Dashboard</h1>
-      <p class="subtitle">Intel Memory Latency Checker - Performance Analysis</p>
+      <p class="subtitle">Real-time Multi-Machine Benchmark Dashboard</p>
       <div style="margin-top: 15px;">
         <div id="status" class="connecting">
           <span class="status-dot"></span>
@@ -314,57 +314,31 @@
         <div class="stat-value" id="currentCores">-</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Latest Bandwidth</div>
-        <div class="stat-value" id="currentBW">-<span class="stat-unit">MB/s</span></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Latest Latency</div>
-        <div class="stat-value" id="currentLat">-<span class="stat-unit">ns</span></div>
+        <div class="stat-label">Latest KPI</div>
+        <div class="stat-value" id="currentBW">-</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Tests Completed</div>
         <div class="stat-value" id="testCount">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Avg CPU Utilization</div>
-        <div class="stat-value" id="currentCPU">-<span class="stat-unit">%</span></div>
       </div>
     </div>
 
     <div class="chart-container">
       <div class="chart-title">
         <span class="chart-icon">📊</span>
-        Memory Bandwidth Scaling
+        Benchmark Results
       </div>
       <canvas id="bwChart"></canvas>
     </div>
 
-    <div class="chart-container">
-      <div class="chart-title">
-        <span class="chart-icon">⚡</span>
-        Memory Latency Analysis
-      </div>
-      <canvas id="latChart"></canvas>
-    </div>
-
-    <div class="chart-container">
-      <div class="chart-title">
-        <span class="chart-icon">💻</span>
-        CPU Utilization
-      </div>
-      <canvas id="cpuChart"></canvas>
-    </div>
-
     <div class="footer">
-      <p>Real-time memory performance monitoring with Intel MLC</p>
+      <p>Real-time multi-machine benchmark monitoring</p>
     </div>
   </div>
 
 <script>
 
 const bwCtx = document.getElementById('bwChart').getContext('2d');
-const latCtx = document.getElementById('latChart').getContext('2d');
-const cpuCtx = document.getElementById('cpuChart').getContext('2d');
 const statusDiv = document.getElementById('status');
 
 let testCount = 0;
@@ -463,7 +437,7 @@ const bwChart = new Chart(bwCtx, {
         ...chartOptions.scales.y,
         title: {
           display: true,
-          text: 'Bandwidth (MB/s)',
+          text: 'KPI Value',
           font: { size: 13, weight: '600' }
         }
       }
@@ -471,51 +445,7 @@ const bwChart = new Chart(bwCtx, {
   }
 });
 
-const latChart = new Chart(latCtx, {
-  type: 'line',
-  data: { 
-    labels: [], 
-    datasets: []
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      ...chartOptions.scales,
-      y: {
-        ...chartOptions.scales.y,
-        title: {
-          display: true,
-          text: 'Latency (nanoseconds)',
-          font: { size: 13, weight: '600' }
-        }
-      }
-    }
-  }
-});
 
-const cpuChart = new Chart(cpuCtx, {
-  type: 'line',
-  data: { 
-    labels: [], 
-    datasets: []
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      ...chartOptions.scales,
-      y: {
-        ...chartOptions.scales.y,
-        beginAtZero: true,
-        max: 100,
-        title: {
-          display: true,
-          text: 'CPU Utilization (%)',
-          font: { size: 13, weight: '600' }
-        }
-      }
-    }
-  }
-});
 
 function getOrCreateDataset(chart, machineId, metricLabel) {
   let dataset = chart.data.datasets.find(ds => ds.label === `${machineId} - ${metricLabel}`);
@@ -629,12 +559,10 @@ function connectControl() {
   };
 }
 
-function updateStats(cores, bandwidth, latency, cpuUtil) {
+function updateStats(cores, kpi) {
   document.getElementById('machineCount').textContent = machines.size;
   document.getElementById('currentCores').textContent = cores;
-  document.getElementById('currentBW').innerHTML = `${bandwidth.toFixed(1)}<span class="stat-unit">MB/s</span>`;
-  document.getElementById('currentLat').innerHTML = `${latency.toFixed(1)}<span class="stat-unit">ns</span>`;
-  document.getElementById('currentCPU').innerHTML = `${cpuUtil ? cpuUtil.toFixed(1) : '0.0'}<span class="stat-unit">%</span>`;
+  document.getElementById('currentBW').textContent = kpi ? kpi.toFixed(1) : '-';
   document.getElementById('testCount').textContent = testCount;
 }
 
@@ -666,11 +594,12 @@ function connect() {
       }
       
       // Skip non-benchmark messages
-      if (!msg.cores || !msg.bandwidth || !msg.latency) {
+      const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
+      if (!msg.cores || !kpiValue) {
         return;
       }
       
-      const machineId = msg.machine || 'unknown';
+      const machineId = msg.machine || msg.host || 'unknown';
       const label = `${machineId}-${msg.cores}c`;
       
       testCount++;
@@ -678,26 +607,18 @@ function connect() {
       // Update or add label if not exists
       if (!bwChart.data.labels.includes(label)) {
         bwChart.data.labels.push(label);
-        latChart.data.labels.push(label);
-        cpuChart.data.labels.push(label);
       }
 
-      // Get or create datasets for this machine
-      const bwDataset = getOrCreateDataset(bwChart, machineId, 'BW');
-      const latDataset = getOrCreateDataset(latChart, machineId, 'LAT');
-      const cpuDataset = getOrCreateDataset(cpuChart, machineId, 'CPU');
+      // Get or create dataset for this machine
+      const bwDataset = getOrCreateDataset(bwChart, machineId, 'KPI');
       
-      // Add data points
-      bwDataset.data.push(msg.bandwidth);
-      latDataset.data.push(msg.latency);
-      cpuDataset.data.push(msg.cpu_util || 0);
+      // Add data point
+      bwDataset.data.push(kpiValue);
       
-      // Update charts
+      // Update chart
       bwChart.update('active');
-      latChart.update('active');
-      cpuChart.update('active');
       
-      updateStats(msg.cores, msg.bandwidth, msg.latency, msg.cpu_util);
+      updateStats(msg.cores, kpiValue);
       updateStatus(`Running - ${machineId}: ${msg.cores} cores`, 'connected');
     } catch (e) {
       console.error('Error parsing message:', e);

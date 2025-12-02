@@ -1,0 +1,18 @@
+{
+	"ulid": "01KBG03JAK355R442BHCTWJHZ5",
+	"minTime": 1764684002673,
+	"maxTime": 1764691200000,
+	"stats": {
+		"numSamples": 4287360,
+		"numFloatSamples": 4287360,
+		"numSeries": 8932,
+		"numChunks": 35728
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KBG03JAK355R442BHCTWJHZ5"
+		]
+	},
+	"version": 1
+}
