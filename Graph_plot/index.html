@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NGINX VM Scaling Dashboard</title>
+  <title>MLC Scaling Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -14,707 +12,636 @@
     }
     
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 20px;
-      color: #fff;
-      overflow-x: hidden;
-    }
-    
-    /* Animated background particles */
-    .particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-    
-    .particle {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      animation: float 20s infinite ease-in-out;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0) translateX(0) scale(1); }
-      33% { transform: translateY(-100px) translateX(50px) scale(1.2); }
-      66% { transform: translateY(-50px) translateX(-50px) scale(0.8); }
     }
     
     .container {
-      max-width: 1600px;
+      max-width: 1400px;
       margin: 0 auto;
-      position: relative;
-      z-index: 1;
     }
     
-    /* Header Section */
     .header {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 40px;
-      margin-bottom: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-      animation: rotate 30s linear infinite;
-    }
-    
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
     
     h1 {
-      font-size: 3em;
+      color: #2d3748;
+      font-size: 2.5em;
       font-weight: 700;
       margin-bottom: 10px;
-      background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      position: relative;
-      z-index: 1;
-      text-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
     }
     
     .subtitle {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 1.2em;
-      font-weight: 300;
-      position: relative;
-      z-index: 1;
+      color: #718096;
+      font-size: 1.1em;
     }
     
-    /* Status Bar */
     #status {
-      display: flex;
+      padding: 15px 25px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1em;
+      display: inline-flex;
       align-items: center;
-      gap: 15px;
-      padding: 20px 30px;
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(21, 128, 61, 0.15) 100%);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      border-radius: 16px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
+      gap: 10px;
       transition: all 0.3s ease;
-    }
-    
-    #status.disconnected {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(185, 28, 28, 0.15) 100%);
-      border-color: rgba(239, 68, 68, 0.3);
-    }
-    
-    .status-indicator {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
       animation: pulse 2s infinite;
     }
     
     @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.2); opacity: 0.8; }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
     }
     
-    .status-indicator.disconnected {
-      background: #ef4444;
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+    .connected { 
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
       animation: none;
     }
-    
-    #statusText {
-      font-size: 1.1em;
-      font-weight: 600;
+    .disconnected { 
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      animation: none;
+    }
+    .connecting { 
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
     }
     
-    /* Control Panel */
-    .control-panel {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-label {
+      color: #718096;
+      font-size: 0.85em;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      color: #2d3748;
+      font-size: 2em;
+      font-weight: 700;
+    }
+    
+    .stat-unit {
+      color: #a0aec0;
+      font-size: 0.6em;
+      font-weight: 400;
+    }
+    
+    .chart-container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
       padding: 30px;
-      margin-bottom: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
     }
     
-    .control-header {
+    .chart-container:hover {
+      transform: scale(1.01);
+    }
+    
+    .chart-title {
+      color: #2d3748;
       font-size: 1.5em;
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 20px;
-      color: #a855f7;
       display: flex;
       align-items: center;
       gap: 10px;
     }
     
-    .agent-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-    
-    .agent-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    
-    .agent-card:hover {
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.3);
-    }
-    
-    .agent-name {
-      font-size: 1.3em;
-      font-weight: 600;
-      color: #a855f7;
-      margin-bottom: 5px;
-    }
-    
-    .agent-status {
-      font-size: 0.9em;
-      color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .agent-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
-      border-radius: 50%;
-      margin: 0 auto 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5em;
-      box-shadow: 0 5px 15px rgba(168, 85, 247, 0.4);
-    }
-    
-    .run-button {
-      width: 100%;
-      padding: 18px 40px;
-      font-size: 1.2em;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .run-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 40px rgba(168, 85, 247, 0.6);
-    }
-    
-    .run-button:active {
-      transform: translateY(-1px);
-    }
-    
-    .run-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    
-    /* Chart Container */
-    .chart-container {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.5) 100%);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 40px;
-      margin-bottom: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      transition: all 0.3s ease;
-    }
-    
-    .chart-container:hover {
-      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
-      transform: translateY(-2px);
-    }
-    
-    .chart-title {
-      font-size: 1.8em;
-      font-weight: 600;
-      margin-bottom: 25px;
-      color: #a855f7;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
     .chart-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #667eea 0%, #a855f7 100%);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: 1.2em;
     }
     
     canvas {
-      max-height: 500px;
+      max-height: 300px;
     }
     
-    /* Footer */
     .footer {
       text-align: center;
-      padding: 30px;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 30px;
       font-size: 0.9em;
     }
     
-    /* Loading Animation */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
+    .control-panel {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .control-title {
+      color: #2d3748;
+      font-size: 1.3em;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .agent-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .agent-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .agent-status-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      border-top-color: #a855f7;
-      animation: spin 1s linear infinite;
+      background: #10b981;
+      animation: blink 2s infinite;
     }
     
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2em;
-      }
-      
-      .agent-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .chart-container {
-        padding: 20px;
-      }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .chart-container, .stat-card {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    
+    .chart-container:nth-child(2) { animation-delay: 0.1s; }
+    .chart-container:nth-child(3) { animation-delay: 0.2s; }
   </style>
 </head>
+
 <body>
-  <!-- Animated background particles -->
-  <div class="particles" id="particles"></div>
-  
   <div class="container">
-    <!-- Header -->
     <div class="header">
-      <h1>🚀 Real-Time NGINX VM Scaling Dashboard</h1>
-      <p class="subtitle">Monitor and analyze IOPS performance across multiple systems</p>
-      
-      <div id="status" class="disconnected">
-        <div class="status-indicator disconnected"></div>
-        <span id="statusText">Connecting...</span>
+      <h1>⚡ Real-Time NGINX VM Scaling Dashboard</h1>
+      <p class="subtitle">Real-time Multi-Machine Benchmark Dashboard</p>
+      <div style="margin-top: 15px;">
+        <div id="status" class="connecting">
+          <span class="status-dot"></span>
+          Connecting to server...
+        </div>
       </div>
     </div>
-    
-    <!-- Control Panel -->
+
     <div class="control-panel">
-      <div class="control-header">
+      <div class="control-title">
         <span>🎮</span>
-        <span>Control Center</span>
+        Remote Control Panel
       </div>
-      
-      <div id="agentList" class="agent-grid">
-        <!-- Agents will be populated here -->
+      <div class="agent-list" id="agentList">
+        <span style="color: #718096;">No agents connected</span>
       </div>
-      
-      <button id="runAllBtn" class="run-button" onclick="runAll()">
-        <span id="btnText">🔥 Run All Agents</span>
-      </button>
+      <div class="button-group">
+        <button class="btn btn-primary" id="runAllBtn" onclick="runAllBenchmarks()" disabled>
+          ▶️ Run All Benchmarks
+        </button>
+        <button class="btn btn-secondary" id="refreshBtn" onclick="refreshAgents()">
+          🔄 Refresh Agents
+        </button>
+      </div>
     </div>
-    
-    <!-- Chart Section -->
+
     <div class="chart-container">
       <div class="chart-title">
-        <div class="chart-icon">📊</div>
-        <span>IOPS Performance Chart</span>
+        <span class="chart-icon">📊</span>
+        Benchmark Results
       </div>
       <canvas id="bwChart"></canvas>
     </div>
-    
-    <!-- Footer -->
+
     <div class="footer">
-      <p>Real-Time NGINX VM Scaling Dashboard | Powered by WebSocket & Chart.js</p>
+      <p>Real-time multi-machine benchmark monitoring</p>
     </div>
   </div>
 
-  <script>
-    // Create animated background particles
-    function createParticles() {
-      const container = document.getElementById('particles');
-      for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.width = Math.random() * 100 + 20 + 'px';
-        particle.style.height = particle.style.width;
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.top = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 20 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
-        container.appendChild(particle);
-      }
-    }
-    createParticles();
+<script>
 
-    let ws = null;
-    let controlWs = null;
-    let bwChart = null;
-    let testCount = 0;
-    let agents = [];
+const bwCtx = document.getElementById('bwChart').getContext('2d');
+const statusDiv = document.getElementById('status');
 
-    const chartColors = [
-      {
-        border: 'rgba(99, 102, 241, 1)',
-        bg: 'rgba(99, 102, 241, 0.2)'
-      },
-      {
-        border: 'rgba(168, 85, 247, 1)',
-        bg: 'rgba(168, 85, 247, 0.2)'
-      },
-      {
-        border: 'rgba(236, 72, 153, 1)',
-        bg: 'rgba(236, 72, 153, 0.2)'
-      },
-      {
-        border: 'rgba(59, 130, 246, 1)',
-        bg: 'rgba(59, 130, 246, 0.2)'
-      },
-      {
-        border: 'rgba(16, 185, 129, 1)',
-        bg: 'rgba(16, 185, 129, 0.2)'
-      }
-    ];
+let testCount = 0;
+let ws;
+let controlWs;
+let reconnectTimeout;
+let machines = new Map(); // Track data per machine
+let connectedAgents = [];
+let machineColors = [
+  'rgb(102, 126, 234)',
+  'rgb(239, 68, 68)',
+  'rgb(16, 185, 129)',
+  'rgb(245, 158, 11)',
+  'rgb(139, 92, 246)',
+  'rgb(236, 72, 153)'
+];
 
-    // Chart configuration
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: true,
-      animation: {
-        duration: 750,
-        easing: 'easeInOutQuart'
-      },
-      interaction: {
-        mode: 'index',
-        intersect: false
-      },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: {
-            color: 'rgba(255, 255, 255, 0.9)',
-            font: {
-              size: 14,
-              weight: '600'
-            },
-            padding: 15,
-            usePointStyle: true,
-            pointStyle: 'circle'
-          }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          titleColor: '#a855f7',
-          bodyColor: '#fff',
-          borderColor: 'rgba(168, 85, 247, 0.5)',
-          borderWidth: 1,
-          padding: 12,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' IOPS';
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(255, 255, 255, 0.05)',
-            drawBorder: false
-          },
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)',
-            font: { size: 12 },
-            callback: function(value) {
-              return value.toLocaleString();
-            }
-          },
-          title: {
-            display: true,
-            text: 'IOPS',
-            color: '#a855f7',
-            font: { size: 14, weight: '600' }
-          }
-        },
-        x: {
-          grid: {
-            color: 'rgba(255, 255, 255, 0.05)',
-            drawBorder: false
-          },
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)',
-            font: { size: 12 }
-          },
-          title: {
-            display: true,
-            text: 'Number of VMs',
-            color: '#a855f7',
-            font: { size: 14, weight: '600' }
-          }
-        }
-      }
-    };
-
-    // Initialize chart
-    const bwCtx = document.getElementById('bwChart').getContext('2d');
-    bwChart = new Chart(bwCtx, {
-      type: 'line',
-      data: { 
-        labels: [], 
-        datasets: []
-      },
-      options: chartOptions
+function getColorForMachine(machineId) {
+  if (!machines.has(machineId)) {
+    const colorIndex = machines.size % machineColors.length;
+    machines.set(machineId, {
+      color: machineColors[colorIndex],
+      lastUpdate: Date.now()
     });
+  }
+  return machines.get(machineId).color;
+}
 
-    function getOrCreateDataset(chart, machineId, label) {
-      let dataset = chart.data.datasets.find(ds => ds.label === machineId);
-      
-      if (!dataset) {
-        const colorIndex = chart.data.datasets.length % chartColors.length;
-        const colors = chartColors[colorIndex];
-        
-        dataset = {
-          label: machineId,
-          data: [],
-          borderColor: colors.border,
-          backgroundColor: colors.bg,
-          borderWidth: 3,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          pointBackgroundColor: colors.border,
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          tension: 0.3,
-          fill: true
-        };
-        
-        chart.data.datasets.push(dataset);
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: true,
+  animation: {
+    duration: 750,
+    easing: 'easeInOutQuart'
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top',
+      labels: {
+        font: {
+          size: 14,
+          weight: '600'
+        }
       }
-      
-      return dataset;
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      padding: 12,
+      titleFont: {
+        size: 14,
+        weight: '600'
+      },
+      bodyFont: {
+        size: 13
+      },
+      cornerRadius: 8
     }
-
-    function updateStatus(message, status) {
-      const statusEl = document.getElementById('status');
-      const statusText = document.getElementById('statusText');
-      const indicator = statusEl.querySelector('.status-indicator');
-      
-      statusText.textContent = message;
-      
-      if (status === 'connected') {
-        statusEl.classList.remove('disconnected');
-        indicator.classList.remove('disconnected');
-      } else {
-        statusEl.classList.add('disconnected');
-        indicator.classList.add('disconnected');
+  },
+  scales: {
+    y: {
+      beginAtZero: false,
+      grid: {
+        color: 'rgba(0, 0, 0, 0.05)'
+      },
+      ticks: {
+        font: {
+          size: 12
+        }
+      }
+    },
+    x: {
+      title: {
+        display: true,
+        text: 'Number of VMs',
+        font: { size: 13, weight: '600' }
+      },
+      grid: {
+        color: 'rgba(0, 0, 0, 0.05)'
+      },
+      ticks: {
+        font: {
+          size: 12
+        }
       }
     }
+  }
+};
 
-    function updateAgentList(agentList) {
-      agents = agentList;
-      const container = document.getElementById('agentList');
+const bwChart = new Chart(bwCtx, {
+  type: 'line',
+  data: { 
+    labels: [], 
+    datasets: []
+  },
+  options: {
+    ...chartOptions,
+    scales: {
+      ...chartOptions.scales,
+      y: {
+        ...chartOptions.scales.y,
+        title: {
+          display: true,
+          text: 'IOPS',
+          font: { size: 13, weight: '600' }
+        }
+      }
+    }
+  }
+});
+
+
+
+function getOrCreateDataset(chart, machineId, metricLabel) {
+  let dataset = chart.data.datasets.find(ds => ds.label === `${machineId} - ${metricLabel}`);
+  
+  if (!dataset) {
+    const color = getColorForMachine(machineId);
+    const rgbaColor = color.replace('rgb', 'rgba').replace(')', ', 0.1)');
+    
+    dataset = {
+      label: `${machineId} - ${metricLabel}`,
+      data: [],
+      borderColor: color,
+      backgroundColor: rgbaColor,
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      pointBackgroundColor: color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2
+    };
+    
+    chart.data.datasets.push(dataset);
+  }
+  
+  return dataset;
+}
+
+function updateStatus(message, className) {
+  statusDiv.innerHTML = `<span class="status-dot"></span>${message}`;
+  statusDiv.className = className;
+}
+
+function updateAgentList(agents) {
+  connectedAgents = agents;
+  const agentListDiv = document.getElementById('agentList');
+  const runAllBtn = document.getElementById('runAllBtn');
+  
+  if (agents.length === 0) {
+    agentListDiv.innerHTML = '<span style="color: #718096;">No agents connected</span>';
+    runAllBtn.disabled = true;
+  } else {
+    agentListDiv.innerHTML = agents.map(agent => 
+      `<div class="agent-badge">
+        <span class="agent-status-dot"></span>
+        ${agent}
+      </div>`
+    ).join('');
+    runAllBtn.disabled = false;
+  }
+}
+
+function runAllBenchmarks() {
+  if (!controlWs || controlWs.readyState !== WebSocket.OPEN) {
+    alert('Control connection not established. Please refresh the page.');
+    return;
+  }
+  
+  if (connectedAgents.length === 0) {
+    alert('No agents connected!');
+    return;
+  }
+  
+  console.log('Triggering benchmark on all agents:', connectedAgents);
+  controlWs.send(JSON.stringify({
+    command: 'run_all'
+  }));
+  
+  updateStatus('Triggered benchmarks on all agents', 'connecting');
+}
+
+function refreshAgents() {
+  if (controlWs && controlWs.readyState === WebSocket.OPEN) {
+    controlWs.send(JSON.stringify({
+      command: 'get_agents'
+    }));
+  }
+}
+
+function connectControl() {
+  const wsUrl = `ws://${window.location.hostname}:8000/ws/control`;
+  console.log('Connecting control channel to:', wsUrl);
+  
+  controlWs = new WebSocket(wsUrl);
+  
+  controlWs.onopen = () => {
+    console.log('Control WebSocket connected');
+    // Request agent list
+    controlWs.send(JSON.stringify({ command: 'get_agents' }));
+  };
+  
+  controlWs.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'agent_list') {
+        updateAgentList(msg.agents);
+      }
+    } catch (e) {
+      console.error('Control message error:', e);
+    }
+  };
+  
+  controlWs.onclose = () => {
+    console.log('Control WebSocket closed, reconnecting...');
+    setTimeout(connectControl, 3000);
+  };
+  
+  controlWs.onerror = (error) => {
+    console.error('Control WebSocket error:', error);
+  };
+}
+
+function connect() {
+  const wsUrl = `ws://${window.location.hostname}:8000/ws`;
+  console.log('Connecting to:', wsUrl);
+  
+  ws = new WebSocket(wsUrl);
+  
+  ws.onopen = () => {
+    updateStatus('Connected - Running benchmark...', 'connected');
+    console.log('WebSocket connected');
+  };
+  
+  ws.onmessage = (event) => {
+    console.log('[DASHBOARD] Received message:', event.data);
+    try {
+      const msg = JSON.parse(event.data);
+      console.log('[DASHBOARD] Parsed message:', msg);
       
-      if (agentList.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No agents connected</div>';
+      // Handle agent list updates
+      if (msg.type === 'agent_list') {
+        updateAgentList(msg.agents);
         return;
       }
       
-      container.innerHTML = agentList.map(agent => `
-        <div class="agent-card">
-          <div class="agent-icon">🖥️</div>
-          <div class="agent-name">${agent}</div>
-          <div class="agent-status">Ready</div>
-        </div>
-      `).join('');
-    }
-
-    function connectWebSocket() {
-      const host = window.location.host;
-      const wsUrl = `ws://${host}/ws`;
-      
-      console.log('Connecting to:', wsUrl);
-      
-      ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        updateStatus('Connected - Ready to run', 'connected');
-        console.log('WebSocket connected');
-      };
-      
-      ws.onmessage = (event) => {
-        console.log('[DASHBOARD] Received message:', event.data);
-        try {
-          const msg = JSON.parse(event.data);
-          console.log('[DASHBOARD] Parsed message:', msg);
-          
-          if (msg.type === 'agent_list') {
-            updateAgentList(msg.agents);
-            return;
-          }
-          
-          if (msg.error) {
-            console.warn('Received error:', msg.error);
-            return;
-          }
-          
-          if (msg.type === 'ping') {
-            return;
-          }
-          
-          const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
-          if (!kpiValue) {
-            console.log('[DASHBOARD] Skipping message - no KPI value:', msg);
-            return;
-          }
-          
-          const machineId = msg.machine || msg.host || 'unknown';
-          const coresOrVMs = msg.cores || msg.vms || '?';
-          
-          console.log('[DASHBOARD] Adding data point:', { machineId, coresOrVMs, kpi: kpiValue });
-          
-          testCount++;
-          
-          if (!bwChart.data.labels.includes(coresOrVMs)) {
-            bwChart.data.labels.push(coresOrVMs);
-            bwChart.data.labels.sort((a, b) => {
-              const numA = parseInt(a) || 0;
-              const numB = parseInt(b) || 0;
-              return numA - numB;
-            });
-          }
-
-          const bwDataset = getOrCreateDataset(bwChart, machineId, 'IOPS');
-          
-          const labelIndex = bwChart.data.labels.indexOf(coresOrVMs);
-          
-          while (bwDataset.data.length <= labelIndex) {
-            bwDataset.data.push(null);
-          }
-          bwDataset.data[labelIndex] = kpiValue;
-          
-          bwChart.update('active');
-          
-          updateStatus(`Running - ${machineId}: ${msg.cores || msg.vms || '?'} VMs`, 'connected');
-        } catch (e) {
-          console.error('Error parsing message:', e);
-        }
-      };
-      
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        updateStatus('Connection error', 'disconnected');
-      };
-      
-      ws.onclose = () => {
-        console.log('WebSocket closed');
-        updateStatus('Disconnected - Reconnecting...', 'disconnected');
-        setTimeout(connectWebSocket, 3000);
-      };
-    }
-
-    function connectControlChannel() {
-      const host = window.location.host;
-      const wsUrl = `ws://${host}/ws/control`;
-      
-      console.log('Connecting control channel to:', wsUrl);
-      
-      controlWs = new WebSocket(wsUrl);
-      
-      controlWs.onopen = () => {
-        console.log('Control WebSocket connected');
-        controlWs.send(JSON.stringify({ command: 'get_agents' }));
-      };
-      
-      controlWs.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        if (msg.type === 'agent_list') {
-          updateAgentList(msg.agents);
-        }
-      };
-      
-      controlWs.onclose = () => {
-        console.log('Control WebSocket closed');
-        setTimeout(connectControlChannel, 3000);
-      };
-    }
-
-    function runAll() {
-      if (!controlWs || controlWs.readyState !== WebSocket.OPEN) {
-        alert('Control connection not ready');
+      // Skip error messages
+      if (msg.error) {
+        console.warn('Received error:', msg.error);
         return;
       }
       
-      console.log('Triggering benchmark on all agents:', agents);
+      // Skip ping messages
+      if (msg.type === 'ping') {
+        return;
+      }
       
-      const btn = document.getElementById('runAllBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<div class="loading"></div> Running...';
+      // Get KPI value (requests, bandwidth, or kpi field)
+      const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
+      if (!kpiValue) {
+        console.log('[DASHBOARD] Skipping message - no KPI value:', msg);
+        return;
+      }
       
-      controlWs.send(JSON.stringify({
-        command: 'run_all'
-      }));
+      // Get machine ID and cores/VMs
+      const machineId = msg.machine || msg.host || 'unknown';
+      const coresOrVMs = msg.cores || msg.vms || '?';
       
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = '🔥 Run All Agents';
-      }, 3000);
-    }
+      console.log('[DASHBOARD] Adding data point:', { machineId, coresOrVMs, kpi: kpiValue });
+      
+      testCount++;
+      
+      // Add X-axis label (cores/VMs) if not exists
+      if (!bwChart.data.labels.includes(coresOrVMs)) {
+        bwChart.data.labels.push(coresOrVMs);
+        // Sort labels numerically
+        bwChart.data.labels.sort((a, b) => {
+          const numA = parseInt(a) || 0;
+          const numB = parseInt(b) || 0;
+          return numA - numB;
+        });
+      }
 
-    // Initialize connections
-    connectWebSocket();
-    connectControlChannel();
-  </script>
+      // Get or create dataset for this machine
+      const bwDataset = getOrCreateDataset(bwChart, machineId, 'IOPS');
+      
+      // Find the index of this cores/VMs value in labels
+      const labelIndex = bwChart.data.labels.indexOf(coresOrVMs);
+      
+      // Set data at the correct index (create sparse array if needed)
+      while (bwDataset.data.length <= labelIndex) {
+        bwDataset.data.push(null);
+      }
+      bwDataset.data[labelIndex] = kpiValue;
+      
+      // Update chart
+      bwChart.update('active');
+      
+      
+      updateStatus(`Running - ${machineId}: ${msg.cores || msg.vms || '?'} VMs`, 'connected');
+    } catch (e) {
+      console.error('Error parsing message:', e);
+    }
+  };
+  
+  ws.onclose = () => {
+    updateStatus('✓ Benchmark Completed', 'disconnected');
+    console.log('WebSocket closed');
+  };
+  
+  ws.onerror = (error) => {
+    updateStatus('Connection error - Check server status', 'disconnected');
+    console.error('WebSocket error:', error);
+  };
+}
+
+// Start connections
+connect();
+connectControl();
+</script>
 </body>
 </html>
 
