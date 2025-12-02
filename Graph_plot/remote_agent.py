@@ -37,17 +37,34 @@ class RemoteAgent:
         self.config_file = config_file
         self.running = True
         self.current_process = None
+        # Get the directory where this script is located
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"[DEBUG] Script directory: {self.script_dir}")
         
     async def run_mlc_benchmark(self, websocket):
         """Run MLC benchmark and stream results"""
         print(f"[AGENT] Starting benchmark with config: {self.config_file}")
         
         try:
-            # Run the generic runner with the config
+            # Build absolute paths for the script and config
+            runner_script = os.path.join(self.script_dir, 'generic_runner.sh')
+            
+            # If config is relative, make it absolute relative to script dir
+            if not os.path.isabs(self.config_file):
+                config_path = os.path.join(self.script_dir, self.config_file)
+            else:
+                config_path = self.config_file
+            
+            print(f"[DEBUG] Runner: {runner_script}")
+            print(f"[DEBUG] Config: {config_path}")
+            print(f"[DEBUG] Working directory: {self.script_dir}")
+            
+            # Run the generic runner with the config, using script directory as cwd
             self.current_process = await asyncio.create_subprocess_exec(
-                './generic_runner.sh', self.config_file, self.machine_id,
+                runner_script, config_path, self.machine_id,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.script_dir
             )
             
             # Read stderr in background
