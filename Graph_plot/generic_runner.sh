@@ -54,7 +54,24 @@ extract_kpis() {
     kpis["cores"]=$cores
     kpis["machine"]="$MACHINE_ID"
     
-    if [ "$EXTRACTION_METHOD" == "regex" ]; then
+    if [ "$EXTRACTION_METHOD" == "file" ]; then
+        # Read KPI from file
+        local kpi_file="$KPI_FILE"
+        kpi_file="${kpi_file//\{CORES\}/$cores}"
+        
+        if [ -f "$kpi_file" ]; then
+            local kpi_value=$(cat "$kpi_file" | tr -d '\n\r' | awk '{print $1}')
+            if [[ "$kpi_value" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+                kpis["${FILE_KPI_NAME:-kpi}"]=$kpi_value
+            else
+                kpis["${FILE_KPI_NAME:-kpi}"]=0
+            fi
+        else
+            echo "WARNING: KPI file not found: $kpi_file" >&2
+            kpis["${FILE_KPI_NAME:-kpi}"]=0
+        fi
+        
+    elif [ "$EXTRACTION_METHOD" == "regex" ]; then
         for pattern_def in "${REGEX_PATTERNS[@]}"; do
             IFS=':' read -r kpi_name pattern <<< "$pattern_def"
             value=$(extract_with_regex "$output" "$kpi_name" "$pattern")
@@ -160,9 +177,14 @@ validate_setup() {
 
 run_benchmark() {
     local cores=$1
-    local core_mask=$(generate_core_mask $cores)
     
     echo ">>> Running benchmark with $cores cores" >&2
+    
+    # Execute pre-command if defined
+    if [ ! -z "$PRE_EXEC_COMMAND" ]; then
+        echo "Running pre-exec: $PRE_EXEC_COMMAND" >&2
+        eval "$PRE_EXEC_COMMAND" 2>&1 >&2 || true
+    fi
     
     # Prepare script arguments
     local args="$SCRIPT_ARGS"
@@ -193,6 +215,12 @@ run_benchmark() {
     # Get CPU utilization after
     local cpu_end=$(get_cpu_util)
     local cpu_util=$(echo "scale=2; ($cpu_end + $cpu_start) / 2" | bc 2>/dev/null || echo "0")
+    
+    # Execute post-command if defined
+    if [ ! -z "$POST_EXEC_COMMAND" ]; then
+        echo "Running post-exec: $POST_EXEC_COMMAND" >&2
+        eval "$POST_EXEC_COMMAND" 2>&1 >&2 || true
+    fi
     
     if [ ! -z "$exit_code" ] && [ $exit_code -ne 0 ]; then
         echo "WARNING: Benchmark exited with code $exit_code" >&2
