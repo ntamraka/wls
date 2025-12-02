@@ -126,14 +126,6 @@ output_json() {
 }
 
 # ==============================================================================
-# CPU UTILIZATION MONITORING
-# ==============================================================================
-
-get_cpu_util() {
-    grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'
-}
-
-# ==============================================================================
 # CORE MASK GENERATION
 # ==============================================================================
 
@@ -198,9 +190,6 @@ run_benchmark() {
         numa_cmd="${numa_cmd//\{CORES\}/$core_mask}"
     fi
     
-    # Get CPU utilization before
-    local cpu_start=$(get_cpu_util)
-    
     # Run the benchmark
     local output
     local exit_code
@@ -211,10 +200,6 @@ run_benchmark() {
         output=$($numa_cmd $BENCHMARK_SCRIPT $args 2>&1) || exit_code=$?
     fi
     
-    # Get CPU utilization after
-    local cpu_end=$(get_cpu_util)
-    local cpu_util=$(echo "scale=2; ($cpu_end + $cpu_start) / 2" | bc 2>/dev/null || echo "0")
-    
     # Execute post-command if defined
     if [ ! -z "$POST_EXEC_COMMAND" ]; then
         echo "Running post-exec: $POST_EXEC_COMMAND" >&2
@@ -223,7 +208,7 @@ run_benchmark() {
     
     if [ ! -z "$exit_code" ] && [ $exit_code -ne 0 ]; then
         echo "WARNING: Benchmark exited with code $exit_code" >&2
-        echo "{\"machine\": \"$MACHINE_ID\", \"cores\": $cores, \"error\": \"exit_code_$exit_code\", \"cpu_util\": $cpu_util}"
+        echo "{\"machine\": \"$MACHINE_ID\", \"cores\": $cores, \"error\": \"exit_code_$exit_code\"}"
         return
     fi
     
@@ -232,11 +217,6 @@ run_benchmark() {
     
     # Extract KPIs
     local kpi_json=$(extract_kpis "$output" "$cores")
-    
-    # Add CPU utilization if not already present
-    if ! echo "$kpi_json" | grep -q '"cpu_util"'; then
-        kpi_json=$(echo "$kpi_json" | sed "s/}/, \"cpu_util\": $cpu_util}/")
-    fi
     
     echo "$kpi_json"
 }
