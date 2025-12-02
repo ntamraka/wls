@@ -99,15 +99,10 @@ extract_kpis() {
     done
     
     # Output as JSON
-    output_json "${kpis[@]}"
-}
-
-output_json() {
-    local -n kpi_map=$1
     local json="{"
     local first=true
     
-    for key in "${!kpi_map[@]}"; do
+    for key in "${!kpis[@]}"; do
         if [ "$first" = true ]; then
             first=false
         else
@@ -115,15 +110,19 @@ output_json() {
         fi
         
         # Check if value is numeric
-        if [[ "${kpi_map[$key]}" =~ ^[0-9]+\.?[0-9]*$ ]]; then
-            json+="\"$key\": ${kpi_map[$key]}"
+        if [[ "${kpis[$key]}" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            json+="\"$key\": ${kpis[$key]}"
         else
-            json+="\"$key\": \"${kpi_map[$key]}\""
+            json+="\"$key\": \"${kpis[$key]}\""
         fi
     done
     
     json+="}"
     echo "$json"
+}
+
+output_json() {
+    echo "WARNING: output_json deprecated" >&2
 }
 
 # ==============================================================================
