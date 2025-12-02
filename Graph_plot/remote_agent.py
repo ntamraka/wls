@@ -52,11 +52,15 @@ class RemoteAgent:
             
             # Read stderr in background
             async def read_stderr():
-                while True:
-                    line = await self.current_process.stderr.readline()
-                    if not line:
-                        break
-                    print(f"[DEBUG] {line.decode().strip()}")
+                try:
+                    if self.current_process and self.current_process.stderr:
+                        while True:
+                            line = await self.current_process.stderr.readline()
+                            if not line:
+                                break
+                            print(f"[DEBUG] {line.decode().strip()}")
+                except Exception as e:
+                    print(f"[DEBUG] stderr reader error: {e}")
             
             stderr_task = asyncio.create_task(read_stderr())
             
@@ -73,11 +77,19 @@ class RemoteAgent:
                 if text.startswith('{') and text.endswith('}'):
                     try:
                         data = json.loads(text)
-                        await websocket.send(json.dumps(data))
-                        data_sent += 1
-                        print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
+                        # Check if websocket is still open before sending
+                        if websocket.open:
+                            await websocket.send(json.dumps(data))
+                            data_sent += 1
+                            print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
+                        else:
+                            print(f"[AGENT] WebSocket closed, cannot send data")
+                            break
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
+                    except Exception as e:
+                        print(f"[ERROR] Failed to send data: {e}")
+                        break
                         
             await self.current_process.wait()
             await stderr_task

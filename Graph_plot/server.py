@@ -133,7 +133,8 @@ async def ws_agent(ws: WebSocket):
         # Listen for messages from agent (benchmark results, status, etc.)
         while True:
             try:
-                message = await asyncio.wait_for(ws.receive_json(), timeout=60.0)
+                # Increased timeout to 300s (5 minutes) for long-running benchmarks
+                message = await asyncio.wait_for(ws.receive_json(), timeout=300.0)
                 msg_type = message.get('type')
                 
                 if msg_type == 'heartbeat':
