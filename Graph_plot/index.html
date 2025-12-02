@@ -304,25 +304,6 @@
       </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Active Machines</div>
-        <div class="stat-value" id="machineCount">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Current Cores</div>
-        <div class="stat-value" id="currentCores">-</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Latest KPI</div>
-        <div class="stat-value" id="currentBW">-</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Tests Completed</div>
-        <div class="stat-value" id="testCount">0</div>
-      </div>
-    </div>
-
     <div class="chart-container">
       <div class="chart-title">
         <span class="chart-icon">📊</span>
@@ -559,13 +540,6 @@ function connectControl() {
   };
 }
 
-function updateStats(cores, kpi) {
-  document.getElementById('machineCount').textContent = machines.size;
-  document.getElementById('currentCores').textContent = cores;
-  document.getElementById('currentBW').textContent = kpi ? kpi.toFixed(1) : '-';
-  document.getElementById('testCount').textContent = testCount;
-}
-
 function connect() {
   const wsUrl = `ws://${window.location.hostname}:8000/ws`;
   console.log('Connecting to:', wsUrl);
@@ -618,7 +592,7 @@ function connect() {
       // Update chart
       bwChart.update('active');
       
-      updateStats(msg.cores, kpiValue);
+      
       updateStatus(`Running - ${machineId}: ${msg.cores} cores`, 'connected');
     } catch (e) {
       console.error('Error parsing message:', e);

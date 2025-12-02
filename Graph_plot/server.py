@@ -73,7 +73,7 @@ async def ws_perf(ws: WebSocket):
                             await connection.send_json(data)
                         except:
                             pass
-                    print(f"[SERVER] Sent data: machine={data.get('machine')}, cores={data.get('cores')}, bw={data.get('bandwidth')}, lat={data.get('latency')}")
+                    print(f"[SERVER] Sent data: machine={data.get('machine')}, cores={data.get('cores')}, kpi={data.get('requests') or data.get('bandwidth') or data.get('kpi')}")
                 except Exception as e:
                     print(f"[ERROR] JSON parse error: {e} - Line: {text}")
 
@@ -176,7 +176,7 @@ async def ws_agent(ws: WebSocket):
                     
                     # Log if it's benchmark data
                     if 'cores' in message:
-                        print(f"[SERVER] Agent {machine_id} data: cores={message.get('cores')}, bw={message.get('bandwidth')}, lat={message.get('latency')}")
+                        print(f"[SERVER] Agent {machine_id} data: cores={message.get('cores')}, kpi={message.get('requests') or message.get('bandwidth') or message.get('kpi')}")
                         
             except asyncio.TimeoutError:
                 # No message in 60s, connection might be dead

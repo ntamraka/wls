@@ -63,7 +63,6 @@ class RemoteAgent:
                     try:
                         data = json.loads(text)
                         await websocket.send(json.dumps(data))
-                        print(f"[AGENT] Sent: cores={data.get('cores')}, bw={data.get('bandwidth'):.1f}, lat={data.get('latency'):.1f}")
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
                         
