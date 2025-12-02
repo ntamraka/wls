@@ -64,9 +64,5 @@ USE_NUMACTL=false
 # Output format: "json"
 OUTPUT_FORMAT="json"
 
-# Additional custom fields to include in output
-declare -A CUSTOM_FIELDS=(
-    ["benchmark_type"]="ali_workload"
-    ["test_mode"]="scaling"
-    ["workload"]="SRF_C0288c"
-)
+# No custom fields needed - keep it simple
+# declare -A CUSTOM_FIELDS=()
