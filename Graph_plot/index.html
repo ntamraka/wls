@@ -569,17 +569,24 @@ function connect() {
         return;
       }
       
-      // Skip non-benchmark messages
-      const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
-      if (!msg.cores || !kpiValue) {
-        console.log('[DASHBOARD] Skipping message - missing cores or kpi:', msg);
+      // Skip ping messages
+      if (msg.type === 'ping') {
         return;
       }
       
-      const machineId = msg.machine || msg.host || 'unknown';
-      const label = `${machineId}-${msg.cores}c`;
+      // Get KPI value (requests, bandwidth, or kpi field)
+      const kpiValue = msg.requests || msg.bandwidth || msg.kpi;
+      if (!kpiValue) {
+        console.log('[DASHBOARD] Skipping message - no KPI value:', msg);
+        return;
+      }
       
-      console.log('[DASHBOARD] Adding data point:', { machineId, cores: msg.cores, kpi: kpiValue });
+      // Get machine ID and cores/VMs
+      const machineId = msg.machine || msg.host || 'unknown';
+      const coresOrVMs = msg.cores || msg.vms || '?';
+      const label = `${machineId}-${coresOrVMs}`;
+      
+      console.log('[DASHBOARD] Adding data point:', { machineId, coresOrVMs, kpi: kpiValue });
       
       testCount++;
       
