@@ -584,22 +584,33 @@ function connect() {
       // Get machine ID and cores/VMs
       const machineId = msg.machine || msg.host || 'unknown';
       const coresOrVMs = msg.cores || msg.vms || '?';
-      const label = `${machineId}-${coresOrVMs}`;
       
       console.log('[DASHBOARD] Adding data point:', { machineId, coresOrVMs, kpi: kpiValue });
       
       testCount++;
       
-      // Update or add label if not exists
-      if (!bwChart.data.labels.includes(label)) {
-        bwChart.data.labels.push(label);
+      // Add X-axis label (cores/VMs) if not exists
+      if (!bwChart.data.labels.includes(coresOrVMs)) {
+        bwChart.data.labels.push(coresOrVMs);
+        // Sort labels numerically
+        bwChart.data.labels.sort((a, b) => {
+          const numA = parseInt(a) || 0;
+          const numB = parseInt(b) || 0;
+          return numA - numB;
+        });
       }
 
       // Get or create dataset for this machine
       const bwDataset = getOrCreateDataset(bwChart, machineId, 'KPI');
       
-      // Add data point
-      bwDataset.data.push(kpiValue);
+      // Find the index of this cores/VMs value in labels
+      const labelIndex = bwChart.data.labels.indexOf(coresOrVMs);
+      
+      // Set data at the correct index (create sparse array if needed)
+      while (bwDataset.data.length <= labelIndex) {
+        bwDataset.data.push(null);
+      }
+      bwDataset.data[labelIndex] = kpiValue;
       
       // Update chart
       bwChart.update('active');
