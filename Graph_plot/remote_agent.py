@@ -94,19 +94,18 @@ class RemoteAgent:
                 if text.startswith('{') and text.endswith('}'):
                     try:
                         data = json.loads(text)
-                        # Check if websocket is still open before sending
-                        if websocket.open:
-                            await websocket.send(json.dumps(data))
-                            data_sent += 1
-                            print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
-                        else:
-                            print(f"[AGENT] WebSocket closed, cannot send data")
-                            break
+                        # Try to send data, catch if connection is closed
+                        await websocket.send(json.dumps(data))
+                        data_sent += 1
+                        print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
+                    except (websockets.exceptions.ConnectionClosed, ConnectionError) as e:
+                        print(f"[ERROR] Connection closed while sending data: {e}")
+                        break
                     except Exception as e:
                         print(f"[ERROR] Failed to send data: {e}")
-                        break
+                        # Continue trying for other errors
                         
             await self.current_process.wait()
             await stderr_task
