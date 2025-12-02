@@ -1,0 +1,159 @@
+================================================================================
+                    DATA FLOW: CPU Benchmark → Grafana
+================================================================================
+
+STEP 1: Run Benchmark Script
+┌─────────────────────────────────────────────────────────────────┐
+│ ./cpu-benchmark.sh --cores 4 --duration 20 --test-name my_test │
+│                                                                 │
+│ - Runs stress-ng CPU test                                      │
+│ - Collects: operations, ops/sec, CPU usage                     │
+│ - Formats metrics in Prometheus format                         │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼ HTTP POST
+┌─────────────────────────────────────────────────────────────────┐
+│                    PUSHGATEWAY (Port 9091)                      │
+│                                                                 │
+│ Stores metrics temporarily:                                    │
+│ - cpu_benchmark_ops_per_second{cores="4"} 120.00              │
+│ - cpu_benchmark_operations_total{cores="4"} 2400              │
+│ - cpu_benchmark_cpu_usage_percent{cores="4"} 25.5             │
+│                                                                 │
+│ View: http://localhost:9091/metrics                            │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼ Scrape every 15s
+┌─────────────────────────────────────────────────────────────────┐
+│                     PROMETHEUS (Port 9090)                      │
+│                                                                 │
+│ Time-series database:                                          │
+│ - Scrapes Pushgateway every 15 seconds                        │
+│ - Stores historical data (30 days retention)                  │
+│ - Provides query API                                           │
+│                                                                 │
+│ View: http://localhost:9090                                    │
+│ Test query: cpu_benchmark_ops_per_second                      │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼ PromQL Queries
+┌─────────────────────────────────────────────────────────────────┐
+│                      GRAFANA (Port 3000)                        │
+│                                                                 │
+│ Visualization layer:                                           │
+│ - Datasource configured: http://prometheus:9090               │
+│ - Dashboard: CPU Core Scaling Benchmark                       │
+│ - Queries: cpu_benchmark_ops_per_second                       │
+│ - Renders: Line charts, bar charts, gauges                    │
+│                                                                 │
+│ Access: http://10.140.157.132:3000                            │
+│ Login: admin / admin                                           │
+└─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                            CURRENT STATUS
+================================================================================
+
+✓ Benchmark script works
+✓ Pushgateway receiving metrics (9 entries found)
+✓ Prometheus scraping successfully (8 data points)
+✓ Grafana running and healthy
+⚠ Need to log in to Grafana web UI to see dashboard
+
+================================================================================
+                        HOW TO SEE YOUR DATA
+================================================================================
+
+METHOD 1: Via Dashboard (Recommended)
+────────────────────────────────────────
+1. Open browser: http://10.140.157.132:3000
+2. Login with:
+   Username: admin
+   Password: admin
+   
+3. After login, you'll see the home page
+4. Click the ☰ (hamburger) menu icon in TOP LEFT corner
+5. Click "Dashboards"
+6. You should see: "CPU Core Scaling Benchmark"
+7. Click on it
+
+8. IMPORTANT: Check time range in top-right corner
+   - Click the time picker
+   - Select "Last 1 hour" or "Last 6 hours"
+   - This ensures you see your recent benchmark data
+
+9. You should see graphs with your data!
+
+
+METHOD 2: Via Explore (Direct Query)
+────────────────────────────────────────
+1. Login to Grafana (same as above)
+2. Click the compass icon (🧭) in left menu → "Explore"
+3. Make sure "Prometheus" is selected as datasource
+4. In the query box, type: cpu_benchmark_ops_per_second
+5. Click "Run query" button
+6. You'll see a table/graph with all your benchmark data!
+
+
+METHOD 3: Via Prometheus Directly
+────────────────────────────────────────
+To verify data exists:
+1. Open: http://10.140.157.132:9090
+2. In query box, type: cpu_benchmark_ops_per_second
+3. Click "Execute"
+4. You'll see raw data
+
+================================================================================
+                            YOUR DATA
+================================================================================
+
+Currently available:
+  - 1 cores: 30.00 ops/sec (full_scaling_1core)
+  - 2 cores: 20.00 ops/sec (flow_test_2core)  ← Just created!
+  - 2 cores: 60.00 ops/sec (full_scaling_2core)
+  - 4 cores: 79.99 ops/sec (example_test_4core)
+  - 4 cores: 120.00 ops/sec (full_scaling_4core)
+  - 8 cores: 240.01 ops/sec (full_scaling_8core)
+  - 16 cores: 480.01 ops/sec (full_scaling_16core)
+
+================================================================================
+                         TROUBLESHOOTING
+================================================================================
+
+Issue: "No data" in Grafana panel
+Solution:
+  1. Check TIME RANGE (top-right) - must include when you ran tests
+  2. Click the REFRESH button (circular arrow icon)
+  3. Edit panel → verify query is: cpu_benchmark_ops_per_second
+  4. Check datasource is set to "Prometheus"
+
+Issue: Dashboard doesn't exist
+Solution:
+  1. Wait 10-15 seconds after login (provisioning takes time)
+  2. Press F5 to refresh browser
+  3. Go to Dashboards → Browse → look in "General" folder
+
+Issue: Can't login to Grafana
+Solution:
+  - Default credentials are: admin / admin
+  - You may be prompted to change password - you can skip it
+
+Issue: "Data source not found"
+Solution:
+  - Go to Connections → Data sources
+  - Click "Prometheus"
+  - Click "Test" button
+  - Should show "Data source is working"
+
+================================================================================
+                          QUICK TEST
+================================================================================
+
+Run this to create fresh test data and verify:
+
+  cd /root/wls/graphana
+  ./cpu-benchmark.sh --cores 1 --duration 15 --test-name quicktest
+  
+Then in Grafana Explore, query: cpu_benchmark_ops_per_second{test="quicktest_1core"}
+
+================================================================================
