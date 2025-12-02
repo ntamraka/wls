@@ -159,7 +159,9 @@ async def ws_agent(ws: WebSocket):
                     
                     # Log if it's benchmark data
                     if 'cores' in message:
-                        print(f"[SERVER] Agent {machine_id} data: cores={message.get('cores')}, kpi={message.get('requests') or message.get('bandwidth') or message.get('kpi')}")
+                        import datetime
+                        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+                        print(f"[{timestamp}] Agent {machine_id} data: cores={message.get('cores')}, kpi={message.get('requests') or message.get('bandwidth') or message.get('kpi')}")
                         
             except asyncio.TimeoutError:
                 # No message in 60s, connection might be dead
