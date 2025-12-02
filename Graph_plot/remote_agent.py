@@ -7,22 +7,28 @@ Usage: python3 remote_agent.py <dashboard_server_ip:port> [machine_name]
 Example: python3 remote_agent.py 10.140.157.132:8000 server-02
 """
 
+import os
+import sys
+
+# CRITICAL: Disable ALL proxy settings BEFORE importing websockets
+# This must happen before any network library imports
+proxy_vars = [
+    'http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY',
+    'all_proxy', 'ALL_PROXY', 'ftp_proxy', 'FTP_PROXY',
+    'socks_proxy', 'SOCKS_PROXY', 'no_proxy', 'NO_PROXY'
+]
+
+for var in proxy_vars:
+    if var in os.environ:
+        del os.environ[var]
+        print(f"[DEBUG] Removed proxy variable: {var}")
+
 import asyncio
 import websockets
 import subprocess
 import json
-import sys
 import socket
 import signal
-import os
-
-# Disable proxy for WebSocket connections
-os.environ.pop('http_proxy', None)
-os.environ.pop('https_proxy', None)
-os.environ.pop('HTTP_PROXY', None)
-os.environ.pop('HTTPS_PROXY', None)
-os.environ.pop('all_proxy', None)
-os.environ.pop('ALL_PROXY', None)
 
 class RemoteAgent:
     def __init__(self, server_url, machine_id, config_file="benchmark_config.sh"):
