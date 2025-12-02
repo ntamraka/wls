@@ -61,11 +61,9 @@ extract_kpis() {
         
         if [ -f "$kpi_file" ]; then
             local kpi_value=$(cat "$kpi_file" | tr -d '\n\r' | awk '{print $1}')
-            if [[ "$kpi_value" =~ ^[0-9]+\.?[0-9]*$ ]]; then
-                kpis["${FILE_KPI_NAME:-kpi}"]=$kpi_value
-            else
-                kpis["${FILE_KPI_NAME:-kpi}"]=0
-            fi
+            # Convert scientific notation to regular number
+            kpi_value=$(printf "%.0f" "$kpi_value" 2>/dev/null || echo "0")
+            kpis["${FILE_KPI_NAME:-kpi}"]=$kpi_value
         else
             echo "WARNING: KPI file not found: $kpi_file" >&2
             kpis["${FILE_KPI_NAME:-kpi}"]=0
