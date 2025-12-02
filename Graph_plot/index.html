@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MLC Scaling Dashboard</title>
+  <title>NGINX VM Scaling - Performance Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -276,8 +276,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>⚡ Real-Time NGINX VM Scaling Dashboard</h1>
-      <p class="subtitle">Real-time Multi-Machine Benchmark Dashboard</p>
+      <h1>⚡ NGINX VM Scaling Performance Dashboard</h1>
+      <p class="subtitle">Enterprise-grade multi-system IOPS monitoring and benchmarking platform</p>
       <div style="margin-top: 15px;">
         <div id="status" class="connecting">
           <span class="status-dot"></span>
@@ -289,14 +289,14 @@
     <div class="control-panel">
       <div class="control-title">
         <span>🎮</span>
-        Remote Control Panel
+        Benchmark Control Center
       </div>
       <div class="agent-list" id="agentList">
-        <span style="color: #718096;">No agents connected</span>
+        <span style="color: #718096;">Waiting for agent connections...</span>
       </div>
       <div class="button-group">
         <button class="btn btn-primary" id="runAllBtn" onclick="runAllBenchmarks()" disabled>
-          ▶️ Run All Benchmarks
+          ▶️ Execute All Benchmarks
         </button>
         <button class="btn btn-secondary" id="refreshBtn" onclick="refreshAgents()">
           🔄 Refresh Agents
@@ -307,13 +307,13 @@
     <div class="chart-container">
       <div class="chart-title">
         <span class="chart-icon">📊</span>
-        Benchmark Results
+        Performance Metrics - IOPS vs VM Count
       </div>
       <canvas id="bwChart"></canvas>
     </div>
 
     <div class="footer">
-      <p>Real-time multi-machine benchmark monitoring</p>
+      <p>Enterprise Performance Dashboard | Multi-System IOPS Monitoring | Real-time WebSocket Analytics</p>
     </div>
   </div>
 
@@ -472,7 +472,7 @@ function updateAgentList(agents) {
   const runAllBtn = document.getElementById('runAllBtn');
   
   if (agents.length === 0) {
-    agentListDiv.innerHTML = '<span style="color: #718096;">No agents connected</span>';
+    agentListDiv.innerHTML = '<span style="color: #718096;">Waiting for agent connections...</span>';
     runAllBtn.disabled = true;
   } else {
     agentListDiv.innerHTML = agents.map(agent => 
@@ -487,12 +487,12 @@ function updateAgentList(agents) {
 
 function runAllBenchmarks() {
   if (!controlWs || controlWs.readyState !== WebSocket.OPEN) {
-    alert('Control connection not established. Please refresh the page.');
+    alert('Control connection not established. Please verify network connectivity and refresh the page.');
     return;
   }
   
   if (connectedAgents.length === 0) {
-    alert('No agents connected!');
+    alert('No benchmark agents connected. Please ensure agents are running on target systems.');
     return;
   }
   
@@ -501,7 +501,7 @@ function runAllBenchmarks() {
     command: 'run_all'
   }));
   
-  updateStatus('Triggered benchmarks on all agents', 'connecting');
+  updateStatus('Benchmark execution initiated on all connected agents', 'connecting');
 }
 
 function refreshAgents() {
@@ -552,7 +552,7 @@ function connect() {
   ws = new WebSocket(wsUrl);
   
   ws.onopen = () => {
-    updateStatus('Connected - Running benchmark...', 'connected');
+    updateStatus('WebSocket connected - Ready for data streaming', 'connected');
     console.log('WebSocket connected');
   };
   
@@ -621,7 +621,7 @@ function connect() {
       bwChart.update('active');
       
       
-      updateStatus(`Running - ${machineId}: ${msg.cores || msg.vms || '?'} VMs`, 'connected');
+      updateStatus(`Processing: ${machineId} - ${msg.cores || msg.vms || '?'} VMs | IOPS: ${kpiValue.toLocaleString()}`, 'connected');
     } catch (e) {
       console.error('Error parsing message:', e);
     }
