@@ -50,7 +50,18 @@ class RemoteAgent:
                 stderr=asyncio.subprocess.PIPE
             )
             
+            # Read stderr in background
+            async def read_stderr():
+                while True:
+                    line = await self.current_process.stderr.readline()
+                    if not line:
+                        break
+                    print(f"[DEBUG] {line.decode().strip()}")
+            
+            stderr_task = asyncio.create_task(read_stderr())
+            
             # Stream output to dashboard
+            data_sent = 0
             while True:
                 line = await self.current_process.stdout.readline()
                 if not line:
@@ -63,21 +74,23 @@ class RemoteAgent:
                     try:
                         data = json.loads(text)
                         await websocket.send(json.dumps(data))
+                        data_sent += 1
+                        print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
                         
             await self.current_process.wait()
-            print(f"[AGENT] Benchmark complete! Exit code: {self.current_process.returncode}")
+            await stderr_task
             
-            # Send completion status
-            await websocket.send(json.dumps({
-                "machine": self.machine_id,
-                "status": "completed",
-                "exit_code": self.current_process.returncode
-            }))
+            print(f"[AGENT] Benchmark complete! Exit code: {self.current_process.returncode}, Data points sent: {data_sent}")
+            
+            # Small delay to ensure all data is transmitted
+            await asyncio.sleep(0.5)
             
         except Exception as e:
             print(f"[ERROR] Benchmark execution error: {e}")
+            import traceback
+            traceback.print_exc()
             await websocket.send(json.dumps({
                 "machine": self.machine_id,
                 "status": "error",
