@@ -277,7 +277,7 @@
   <div class="container">
     <div class="header">
       <h1>⚡ NGINX VM Scaling Performance Dashboard</h1>
-      <p class="subtitle">Enterprise-grade multi-system IOPS monitoring and benchmarking platform</p>
+      <p class="subtitle">Enterprise-grade multi-system RPS monitoring and benchmarking platform</p>
       <div style="margin-top: 15px;">
         <div id="status" class="connecting">
           <span class="status-dot"></span>
@@ -307,13 +307,13 @@
     <div class="chart-container">
       <div class="chart-title">
         <span class="chart-icon">📊</span>
-        Performance Metrics - IOPS vs VM Count
+        Performance Metrics - RPS vs VM Count
       </div>
       <canvas id="bwChart"></canvas>
     </div>
 
     <div class="footer">
-      <p>Enterprise Performance Dashboard | Multi-System IOPS Monitoring | Real-time WebSocket Analytics</p>
+      <p>Enterprise Performance Dashboard | Multi-System RPS Monitoring | Real-time WebSocket Analytics</p>
     </div>
   </div>
 
@@ -423,7 +423,7 @@ const bwChart = new Chart(bwCtx, {
         ...chartOptions.scales.y,
         title: {
           display: true,
-          text: 'IOPS',
+          text: 'RPS',
           font: { size: 13, weight: '600' }
         }
       }
@@ -606,7 +606,7 @@ function connect() {
       }
 
       // Get or create dataset for this machine
-      const bwDataset = getOrCreateDataset(bwChart, machineId, 'IOPS');
+      const bwDataset = getOrCreateDataset(bwChart, machineId, 'RPS');
       
       // Find the index of this cores/VMs value in labels
       const labelIndex = bwChart.data.labels.indexOf(coresOrVMs);
@@ -621,7 +621,7 @@ function connect() {
       bwChart.update('active');
       
       
-      updateStatus(`Processing: ${machineId} - ${msg.cores || msg.vms || '?'} VMs | IOPS: ${kpiValue.toLocaleString()}`, 'connected');
+      updateStatus(`Processing: ${machineId} - ${msg.cores || msg.vms || '?'} VMs | RPS: ${kpiValue.toLocaleString()}`, 'connected');
     } catch (e) {
       console.error('Error parsing message:', e);
     }
