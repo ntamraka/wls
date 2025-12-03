@@ -9,8 +9,8 @@
 BENCHMARK_SCRIPT="/home/sr/gtkachuk.libvirt-vm-scaling-scripts-16vCPU/version2.0/ali/start_ali_clients.sh"
 
 # Core/VM configurations to test (1 to 18 VMs)
-#CORE_LIST=("8" "18")
-CORE_LIST=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18")
+CORE_LIST=( "10" "11" "12" "13" "14" "15" "16" "17" "18")
+#CORE_LIST=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18")
 # NUMA node to bind to (-1 to disable NUMA binding for this workload)
 NUMA_NODE=-1
 
