@@ -7,9 +7,18 @@ mongodb/data/
 # Results directories
 results/
 **/results/
+results_*/
 
-# Redis
+# Redis - large files and directories
 redis/dump.rdb
+redis/redis-*/
+redis/*.tar.gz
+redis/memtier_benchmark/
+
+# Result/Log files - Redis benchmarks
+redis/Redis_*.txt
+redis/output_*.csv
+redis/results_summary.csv
 
 # Python
 __pycache__/
@@ -56,3 +65,9 @@ lock
 # Temporary files
 *.tmp
 *.bak
+
+# Compressed archives
+*.tar.gz
+*.zip
+*.tar
+*.gz
