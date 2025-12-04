@@ -210,8 +210,8 @@ run_benchmark() {
         return
     fi
     
-    echo "RAW OUTPUT:" >&2
-    echo "$output" >&2
+    #echo "RAW OUTPUT:" >&2
+    #echo "$output" >&2
     
     # Extract KPIs
     local kpi_json=$(extract_kpis "$output" "$cores")
