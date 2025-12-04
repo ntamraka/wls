@@ -1,0 +1,18 @@
+{
+	"ulid": "01KBM2JC2CCN4KR4FB5HHAC9KM",
+	"minTime": 1764820802673,
+	"maxTime": 1764828000000,
+	"stats": {
+		"numSamples": 4287360,
+		"numFloatSamples": 4287360,
+		"numSeries": 8932,
+		"numChunks": 35728
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KBM2JC2CCN4KR4FB5HHAC9KM"
+		]
+	},
+	"version": 1
+}

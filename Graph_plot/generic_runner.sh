@@ -167,7 +167,7 @@ validate_setup() {
 run_benchmark() {
     local cores=$1
     
-    echo ">>> Running benchmark with $cores cores" >&2
+    echo ">>> Running benchmark with $cores VMs" >&2
     
     # Execute pre-command if defined
     if [ ! -z "$PRE_EXEC_COMMAND" ]; then
@@ -200,7 +200,7 @@ run_benchmark() {
     
     # Execute post-command if defined
     if [ ! -z "$POST_EXEC_COMMAND" ]; then
-        echo "Running post-exec: $POST_EXEC_COMMAND" >&2
+        #echo "Running post-exec: $POST_EXEC_COMMAND" >&2
         eval "$POST_EXEC_COMMAND" 2>&1 >&2 || true
     fi
     
