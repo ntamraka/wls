@@ -163,7 +163,8 @@ async def ws_agent(ws: WebSocket):
                         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
                         vms = message.get('cores', message.get('vms', '?'))
                         rps = message.get('requests') or message.get('bandwidth') or message.get('kpi')
-                        print(f"[{timestamp}] Agent {machine_id} data: VMs={vms}, RPS={rps}")
+                        # ANSI color codes: Cyan for VMs, Green for RPS
+                        print(f"[{timestamp}] Agent {machine_id} data: \033[96mVMs={vms}\033[0m, \033[92mRPS={rps}\033[0m")
                         
             except asyncio.TimeoutError:
                 # No message in 60s, connection might be dead

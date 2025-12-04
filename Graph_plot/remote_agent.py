@@ -99,7 +99,8 @@ class RemoteAgent:
                         data_sent += 1
                         vms = data.get('cores', data.get('vms', '?'))
                         rps = data.get('requests', data.get('bandwidth', data.get('kpi', 0)))
-                        print(f"[AGENT] Sent data point {data_sent}: VMs={vms}, RPS={rps}")
+                        # ANSI color codes: Cyan for VMs, Green for RPS
+                        print(f"[AGENT] Sent data point {data_sent}: \033[96mVMs={vms}\033[0m, \033[92mRPS={rps}\033[0m")
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
                     except (websockets.exceptions.ConnectionClosed, ConnectionError) as e:
