@@ -171,7 +171,7 @@ run_benchmark() {
     
     # Execute pre-command if defined
     if [ ! -z "$PRE_EXEC_COMMAND" ]; then
-        echo "Running pre-exec: $PRE_EXEC_COMMAND" >&2
+        #echo "Running pre-exec: $PRE_EXEC_COMMAND" >&2
         eval "$PRE_EXEC_COMMAND" 2>&1 >&2 || true
     fi
     
@@ -228,7 +228,7 @@ main() {
     echo "Config: $CONFIG_FILE" >&2
     echo "Machine: $MACHINE_ID" >&2
     echo "Script: $BENCHMARK_SCRIPT" >&2
-    echo "Cores: ${CORE_LIST[*]}" >&2
+    echo "VMs: ${CORE_LIST[*]}" >&2
     echo "===================================" >&2
     
     # Validate setup
