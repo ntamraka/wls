@@ -21,7 +21,7 @@ proxy_vars = [
 for var in proxy_vars:
     if var in os.environ:
         del os.environ[var]
-        print(f"[DEBUG] Removed proxy variable: {var}")
+        #print(f"[DEBUG] Removed proxy variable: {var}")
 
 import asyncio
 import websockets
@@ -97,7 +97,9 @@ class RemoteAgent:
                         # Try to send data, catch if connection is closed
                         await websocket.send(json.dumps(data))
                         data_sent += 1
-                        print(f"[AGENT] Sent data point {data_sent}: cores={data.get('cores')}, kpi={data.get('requests', 0)}")
+                        vms = data.get('cores', data.get('vms', '?'))
+                        rps = data.get('requests', data.get('bandwidth', data.get('kpi', 0)))
+                        print(f"[AGENT] Sent data point {data_sent}: VMs={vms}, RPS={rps}")
                     except json.JSONDecodeError as e:
                         print(f"[ERROR] JSON decode error: {e}")
                     except (websockets.exceptions.ConnectionClosed, ConnectionError) as e:

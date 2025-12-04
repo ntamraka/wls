@@ -161,7 +161,9 @@ async def ws_agent(ws: WebSocket):
                     if 'cores' in message:
                         import datetime
                         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-                        print(f"[{timestamp}] Agent {machine_id} data: cores={message.get('cores')}, kpi={message.get('requests') or message.get('bandwidth') or message.get('kpi')}")
+                        vms = message.get('cores', message.get('vms', '?'))
+                        rps = message.get('requests') or message.get('bandwidth') or message.get('kpi')
+                        print(f"[{timestamp}] Agent {machine_id} data: VMs={vms}, RPS={rps}")
                         
             except asyncio.TimeoutError:
                 # No message in 60s, connection might be dead
