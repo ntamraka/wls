@@ -34,10 +34,17 @@ install_dependencies_centos() {
     echo "📦 Installing packages for CentOS/RHEL..."
 
     yum install -y epel-release
-    yum groupinstall -y "Development Tools"
+    
+    # Try to install Development Tools, skip on conflicts
+    yum groupinstall -y "Development Tools" --skip-broken || true
+    
+    # Install individual packages with --skip-broken flag
     yum install -y autoconf automake make gcc-c++ \
         pcre-devel zlib-devel libmemcached-devel libevent-devel openssl-devel \
-        wget git
+        wget git --skip-broken || \
+    yum install -y autoconf automake make \
+        pcre-devel zlib-devel libevent-devel openssl-devel \
+        wget git --skip-broken
 }
 
 case "$DISTRO" in

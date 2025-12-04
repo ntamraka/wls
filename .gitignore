@@ -2,15 +2,22 @@
 graphana/prometheus_data/
 graphana/grafana_data/
 graphana/pushgateway_data/
+mongodb/data/
 
 # Results directories
 results/
 **/results/
 
+# Redis
+redis/dump.rdb
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
 *.so
 .Python
 *.egg-info/
@@ -37,6 +44,14 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# CSV and result files (optional - uncomment if you don't want these tracked)
+# *.csv
+# benchmark_results.csv
+# final_summary.csv
+
+# Lock files
+lock
 
 # Temporary files
 *.tmp

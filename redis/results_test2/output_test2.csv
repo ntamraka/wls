@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,client3_iops,client4_iops,client5_iops,client6_iops,total_iops,average_iops
+results_test2/Redis_ping_pipe-1_size-64_core-288_test2.txt,288,64,1,2584.04,2586.79,2577.47,2535.8,2581.97,2579.39,15445.46,2574.24

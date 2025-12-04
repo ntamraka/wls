@@ -72,7 +72,7 @@ def main():
     x=0
     y=144
     REDIS_SERVER="192.168.200.1"
-    LOG_DIR="/root/memtier_benchmark/log_${1}"
+    LOG_DIR="/root/wls/redis/memtier_benchmark/log_${1}"
 
     # Cleanup previous runs
     rm -rf "$LOG_DIR"
@@ -120,8 +120,8 @@ def main():
     create_script_file(script2_content, local_script_file2)
 
     # Define remote script path
-    remote_script_file = '/root/memtier_benchmark/remote_script.sh'
-    remote_script_file2 = '/root/memtier_benchmark/output_script.sh'
+    remote_script_file = '/root/wls/redis/memtier_benchmark/remote_script.sh'
+    remote_script_file2 = '/root/wls/redis/memtier_benchmark/output_script.sh'
 
     # Hostnames to run the script on
     #hostnames = [ '192.168.200.2']
@@ -141,7 +141,7 @@ def main():
            
     time.sleep(10)
     for hostname in hostnames:
-        run_remote_command(hostname, port, username, password, f'bash /root/memtier_benchmark/output_script.sh /root/memtier_benchmark/log_{core}')
+        run_remote_command(hostname, port, username, password, f'bash /root/wls/redis/memtier_benchmark/output_script.sh /root/wls/redis/memtier_benchmark/log_{core}')
     
 if __name__ == "__main__":
     main()
