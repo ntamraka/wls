@@ -224,9 +224,9 @@ for j in $(seq 1 {config['seq_step']} ${{pcpu}}); do
     
     taskset -c $x memtier_benchmark \\
         -s $REDIS_SERVER -p ${{portp}} \\
-        --threads=1 --test-time {config['test_time']} --pipeline=$3 \\
+        --threads=10 --test-time {config['test_time']} --pipeline=$3 \\
         --hide-histogram --command='ping' \\
-        --clients=100 --data-size=64 \\
+        --clients=20 --data-size=64 \\
         --out-file=${{LOG_DIR}}/log_${{portp}} &
     
     pids[$x]=$!

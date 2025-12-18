@@ -27,7 +27,7 @@ install_dependencies_ubuntu() {
     apt update -y
     apt install -y build-essential autoconf automake gcc g++ \
         make libpcre3-dev zlib1g-dev libevent-dev libssl-dev \
-        libmemcached-dev wget git
+        libmemcached-dev wget git pkg-config
 }
 
 install_dependencies_centos() {
@@ -41,10 +41,10 @@ install_dependencies_centos() {
     # Install individual packages with --skip-broken flag
     yum install -y autoconf automake make gcc-c++ \
         pcre-devel zlib-devel libmemcached-devel libevent-devel openssl-devel \
-        wget git --skip-broken || \
+        wget git pkgconfig --skip-broken || \
     yum install -y autoconf automake make \
         pcre-devel zlib-devel libevent-devel openssl-devel \
-        wget git --skip-broken
+        wget git pkgconfig --skip-broken
 }
 
 case "$DISTRO" in
@@ -69,10 +69,11 @@ tar -xf 6.2.7.tar.gz
 
 echo "🔧 Building Redis..."
 cd redis-6.2.7/src
-make -j$(nproc)
+make -j$(nproc) CFLAGS="-fPIC" LDFLAGS="-no-pie"
+make install
 cd ../..
 
-echo "✔ Redis 6.2.7 build complete."
+echo "✔ Redis 6.2.7 build and installation complete."
 
 
 # --- Build memtier_benchmark --------------------------------------------
@@ -92,7 +93,8 @@ echo "✔ memtier_benchmark installation complete."
 
 echo "=============================================="
 echo " Installation Completed Successfully! 🎉"
-echo " Redis built in: redis-6.2.7/"
+echo " Redis installed: /usr/local/bin/"
+echo "   - redis-server, redis-cli, redis-benchmark"
 echo " memtier installed: /usr/local/bin/memtier_benchmark"
 echo "=============================================="
 

@@ -1,0 +1,126 @@
+#########################################################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -R
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Using Read-only traffic type
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   565007.9
+***********  WARNING *************
+118 SMI interrupts observed in the system in 123.138728 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W3
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   414847.5
+***********  WARNING *************
+113 SMI interrupts observed in the system in 125.788119 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W2
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   366814.6
+***********  WARNING *************
+113 SMI interrupts observed in the system in 126.118703 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W5
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   355959.3
+***********  WARNING *************
+110 SMI interrupts observed in the system in 125.890144 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W7
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   375345.5
+***********  WARNING *************
+113 SMI interrupts observed in the system in 125.459699 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W8
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   360195.6
+***********  WARNING *************
+116 SMI interrupts observed in the system in 125.412311 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --loaded_latency -k0-143 -T -d0 -e -r -b1g -t120 -W6
+
+Using buffer size of 1024.000MiB/thread for reads and an additional 1024.000MiB/thread for writes
+
+Measuring Loaded Latencies for the system
+Using all the threads from each core if Hyper-threading is enabled
+Inject  Latency Bandwidth
+Delay   (ns)    MB/sec
+==========================
+ 00000    0.00   341945.4
+***********  WARNING *************
+110 SMI interrupts observed in the system in 123.306013 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+
+Intel(R) Memory Latency Checker (for Internal Use Only) - v3.11a-internal
+Command line parameters: --idle_latency -b4g -t120 -c1 -j0 -e -r -l128
+
+Using buffer size of 4096.000MiB
+Each iteration took 138.5 base frequency clocks (       66.0    ns)
+
+***********  WARNING *************
+124 SMI interrupts observed in the system in 125.370766 seconds
+Performance may be significantly degraded by SMI
+################################DONE#####################################
+

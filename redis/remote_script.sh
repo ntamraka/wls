@@ -18,9 +18,9 @@ for j in $(seq 1 6 ${pcpu}); do
     
     taskset -c $x memtier_benchmark \
         -s $REDIS_SERVER -p ${portp} \
-        --threads=1 --test-time 100 --pipeline=$3 \
+        --threads=10 --test-time 100 --pipeline=$3 \
         --hide-histogram --command='ping' \
-        --clients=100 --data-size=64 \
+        --clients=20 --data-size=64 \
         --out-file=${LOG_DIR}/log_${portp} &
     
     pids[$x]=$!
