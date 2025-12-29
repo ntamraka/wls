@@ -23,7 +23,7 @@ set -e  # Exit on error
 # ==============================================================================
 BACKUP_DIR="/tmp/sys_tuning_backup"
 NIC_NAME="ens6np0"
-PCI_DEVICE="34:00.0"
+PCI_DEVICE="25:00.0"
 
 # CPU mask for RPS/XPS (all CPUs enabled)
 CPU_MASK="ffffffff,ffffffff,ffffffff,ffffffff,ffffffff,ffffffff,ffffffff,ffffffff,ffffffff"
