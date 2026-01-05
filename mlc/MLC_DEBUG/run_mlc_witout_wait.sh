@@ -5,7 +5,7 @@
 #scaling_gov=`cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | head -n 1`
 
 #/home/tdx/TDX_perf_test/mlc/run_mlc.sh
-mlc_binary="/home/tdx/TDX_perf_test/mlc/mlc_internal"
+mlc_binary="./mlc_internal"
 
 #echo "$kernel"
 #echo "$clocksource"
