@@ -21,6 +21,7 @@ SECTIONS=(
     "hugepage:Hugepage Settings"
     "qdf:QDF Information"
     "cpu_advanced:CPU Advanced Information"
+    "msr:MSR Registers (CPU Frequency, Temperature, Power)"
     "numa:NUMA Details"
     "storage:Storage & I/O"
     "network:Network Information"
@@ -145,6 +146,7 @@ parse_args() {
             --hugepage) RUN_HUGEPAGE=1 ;;
             --qdf) RUN_QDF=1 ;;
             --cpu-advanced) RUN_CPU_ADVANCED=1 ;;
+            --msr) RUN_MSR=1 ;;
             --numa) RUN_NUMA=1 ;;
             --storage) RUN_STORAGE=1 ;;
             --network) RUN_NETWORK=1 ;;
@@ -373,6 +375,438 @@ if [ $RUN_CPU_ADVANCED -eq 1 ]; then
     if [ -d /sys/devices/system/cpu/cpu0/cpuidle ]; then
         CSTATES=$(ls -d /sys/devices/system/cpu/cpu0/cpuidle/state* 2>/dev/null | wc -l)
         [ "$CSTATES" -gt 0 ] && echo "Available C-states: $CSTATES"
+    fi
+fi
+
+# ===================== MSR Registers ===================================
+if [ $RUN_MSR -eq 1 ]; then
+    echo ""
+    echo "===================== MSR Registers (Model-Specific) =========="
+    
+    # Check if msr module is loaded
+    if ! lsmod | grep -q "^msr"; then
+        echo "Loading MSR kernel module..."
+        modprobe msr 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo -e "${YELLOW}Cannot load MSR module (requires root privileges)${NC}"
+            echo "Run: modprobe msr"
+        fi
+    fi
+    
+    # Check if rdmsr is available
+    if ! check_command rdmsr; then
+        echo -e "${YELLOW}rdmsr tool not found. Install msr-tools package.${NC}"
+        echo "  Ubuntu/Debian: apt-get install msr-tools"
+        echo "  RHEL/CentOS: yum install msr-tools"
+    elif [ ! -c /dev/cpu/0/msr ]; then
+        echo -e "${YELLOW}MSR device not available. Load msr module: modprobe msr${NC}"
+    else
+        # Get number of CPUs
+        NUM_CPUS=$(nproc)
+        
+        echo "Reading MSR registers from CPU 0..."
+        echo ""
+        
+        # CPU Frequency - IA32_PERF_STATUS (0x198)
+        if PERF_STATUS=$(rdmsr -p 0 0x198 2>/dev/null); then
+            CURRENT_RATIO=$(( (0x$PERF_STATUS >> 8) & 0xFF ))
+            if [ $CURRENT_RATIO -gt 0 ]; then
+                # Assuming 100 MHz base clock
+                FREQ_MHZ=$((CURRENT_RATIO * 100))
+                echo "CPU Frequency (MSR 0x198 - IA32_PERF_STATUS):"
+                echo "  Current Ratio: $CURRENT_RATIO"
+                echo "  Estimated Frequency: ${FREQ_MHZ} MHz"
+            fi
+        fi
+        
+        # MPERF/APERF for actual frequency
+        if check_command rdmsr; then
+            APERF_START=$(rdmsr -p 0 0xE8 2>/dev/null)
+            MPERF_START=$(rdmsr -p 0 0xE7 2>/dev/null)
+            sleep 0.1
+            APERF_END=$(rdmsr -p 0 0xE8 2>/dev/null)
+            MPERF_END=$(rdmsr -p 0 0xE7 2>/dev/null)
+            
+            if [ -n "$APERF_START" ] && [ -n "$MPERF_START" ] && [ -n "$APERF_END" ] && [ -n "$MPERF_END" ]; then
+                APERF_DELTA=$((0x$APERF_END - 0x$APERF_START))
+                MPERF_DELTA=$((0x$MPERF_END - 0x$MPERF_START))
+                
+                if [ $MPERF_DELTA -gt 0 ]; then
+                    # Get max frequency from cpuinfo
+                    MAX_FREQ=$(grep "model name" /proc/cpuinfo | head -n 1 | grep -oP '\d+\.\d+GHz' | grep -oP '\d+')
+                    if [ -z "$MAX_FREQ" ]; then
+                        MAX_FREQ=$(lscpu | grep "CPU max MHz" | awk '{print $4}' | cut -d'.' -f1)
+                    fi
+                    [ -z "$MAX_FREQ" ] && MAX_FREQ=3000
+                    
+                    AVG_FREQ=$(awk "BEGIN {printf \"%.0f\", ($APERF_DELTA * $MAX_FREQ) / $MPERF_DELTA}")
+                    echo ""
+                    echo "Average CPU Frequency (APERF/MPERF):"
+                    echo "  APERF Delta: $APERF_DELTA"
+                    echo "  MPERF Delta: $MPERF_DELTA"
+                    echo "  Average Frequency: ${AVG_FREQ} MHz"
+                fi
+            fi
+        fi
+        
+        # Temperature - IA32_THERM_STATUS (0x19C)
+        if THERM_STATUS=$(rdmsr -p 0 0x19C 2>/dev/null); then
+            DIGITAL_READOUT=$(( (0x$THERM_STATUS >> 16) & 0x7F ))
+            
+            # Get TjMax (usually from MSR 0x1A2 or assume 100°C)
+            TJMAX=100
+            if TEMP_TARGET=$(rdmsr -p 0 0x1A2 2>/dev/null); then
+                TJMAX=$(( (0x$TEMP_TARGET >> 16) & 0xFF ))
+            fi
+            
+            TEMP=$((TJMAX - DIGITAL_READOUT))
+            
+            echo ""
+            echo "CPU Temperature (MSR 0x19C - IA32_THERM_STATUS):"
+            echo "  TjMax: ${TJMAX}°C"
+            echo "  Digital Readout: $DIGITAL_READOUT"
+            echo "  Current Temperature: ${TEMP}°C"
+            
+            # Check thermal throttling
+            THERMAL_THROTTLE=$(( (0x$THERM_STATUS >> 0) & 0x1 ))
+            [ $THERMAL_THROTTLE -eq 1 ] && echo "  WARNING: Thermal throttling active!"
+        fi
+        
+        # Turbo Boost Status - IA32_MISC_ENABLE (0x1A0)
+        if MISC_ENABLE=$(rdmsr -p 0 0x1A0 2>/dev/null); then
+            TURBO_DISABLED=$(( (0x$MISC_ENABLE >> 38) & 0x1 ))
+            echo ""
+            echo "Turbo Boost Status (MSR 0x1A0 - IA32_MISC_ENABLE):"
+            if [ $TURBO_DISABLED -eq 0 ]; then
+                echo "  Turbo Boost: Enabled"
+            else
+                echo "  Turbo Boost: Disabled"
+            fi
+        fi
+        
+        # Turbo Ratio Limits - MSR_TURBO_RATIO_LIMIT (0x1AD)
+        if TURBO_RATIO=$(rdmsr -p 0 0x1AD 2>/dev/null); then
+            echo ""
+            echo "Turbo Ratio Limits (MSR 0x1AD):"
+            for i in {0..7}; do
+                SHIFT=$((i * 8))
+                RATIO=$(( (0x$TURBO_RATIO >> $SHIFT) & 0xFF ))
+                if [ $RATIO -gt 0 ]; then
+                    FREQ=$((RATIO * 100))
+                    echo "  $(($i + 1)) Core(s): ${RATIO}x (${FREQ} MHz)"
+                fi
+            done
+        fi
+        
+        # Power Limit Information - MSR_PKG_POWER_LIMIT (0x610)
+        if PKG_POWER_LIMIT=$(rdmsr -p 0 0x610 2>/dev/null); then
+            echo ""
+            echo "Package Power Limits (MSR 0x610):"
+            
+            # PL1 (bits 0-14)
+            PL1_POWER=$(( 0x$PKG_POWER_LIMIT & 0x7FFF ))
+            PL1_WATTS=$(awk "BEGIN {printf \"%.2f\", $PL1_POWER / 8}")
+            echo "  PL1 (Sustained): ${PL1_WATTS} W"
+            
+            # PL1 Enable (bit 15)
+            PL1_ENABLE=$(( (0x$PKG_POWER_LIMIT >> 15) & 0x1 ))
+            [ $PL1_ENABLE -eq 1 ] && echo "    PL1 Enabled: Yes" || echo "    PL1 Enabled: No"
+            
+            # PL2 (bits 32-46)
+            PL2_POWER=$(( (0x$PKG_POWER_LIMIT >> 32) & 0x7FFF ))
+            PL2_WATTS=$(awk "BEGIN {printf \"%.2f\", $PL2_POWER / 8}")
+            echo "  PL2 (Burst): ${PL2_WATTS} W"
+            
+            # PL2 Enable (bit 47)
+            PL2_ENABLE=$(( (0x$PKG_POWER_LIMIT >> 47) & 0x1 ))
+            [ $PL2_ENABLE -eq 1 ] && echo "    PL2 Enabled: Yes" || echo "    PL2 Enabled: No"
+        fi
+        
+        # Package Energy Status - MSR_PKG_ENERGY_STATUS (0x611)
+        if PKG_ENERGY=$(rdmsr -p 0 0x611 2>/dev/null); then
+            ENERGY_UNIT=0.000061  # Default for Intel CPUs (1/2^14)
+            
+            # Read RAPL Power Unit (0x606) if available
+            if RAPL_UNIT=$(rdmsr -p 0 0x606 2>/dev/null); then
+                ENERGY_UNIT_RAW=$(( 0x$RAPL_UNIT & 0x1F ))
+                ENERGY_UNIT=$(awk "BEGIN {printf \"%.9f\", 1 / (2 ^ $ENERGY_UNIT_RAW)}")
+            fi
+            
+            ENERGY_RAW=$(( 0x$PKG_ENERGY & 0xFFFFFFFF ))
+            ENERGY_JOULES=$(awk "BEGIN {printf \"%.2f\", $ENERGY_RAW * $ENERGY_UNIT}")
+            
+            echo ""
+            echo "Package Energy (MSR 0x611):"
+            echo "  Total Energy Consumed: ${ENERGY_JOULES} J (since last reset)"
+        fi
+        
+        # C-State Residency
+        echo ""
+        echo "C-State Residency Counters:"
+        
+        # Core C-states
+        declare -A CSTATE_MSRS=(
+            ["C3"]=0x3FC
+            ["C6"]=0x3FD
+            ["C7"]=0x3FE
+        )
+        
+        for state in "${!CSTATE_MSRS[@]}"; do
+            MSR_ADDR=${CSTATE_MSRS[$state]}
+            if RESIDENCY=$(rdmsr -p 0 $MSR_ADDR 2>/dev/null); then
+                echo "  Core ${state} Residency (MSR ${MSR_ADDR}): 0x${RESIDENCY}"
+            fi
+        done
+        
+        # Package C-states
+        declare -A PKG_CSTATE_MSRS=(
+            ["PC2"]=0x60D
+            ["PC3"]=0x3F8
+            ["PC6"]=0x3F9
+            ["PC7"]=0x3FA
+        )
+        
+        for state in "${!PKG_CSTATE_MSRS[@]}"; do
+            MSR_ADDR=${PKG_CSTATE_MSRS[$state]}
+            if RESIDENCY=$(rdmsr -p 0 $MSR_ADDR 2>/dev/null); then
+                echo "  Package ${state} Residency (MSR ${MSR_ADDR}): 0x${RESIDENCY}"
+            fi
+        done
+        
+        # RAPL Power Unit
+        if RAPL_UNIT=$(rdmsr -p 0 0x606 2>/dev/null); then
+            echo ""
+            echo "RAPL Power Unit (MSR 0x606):"
+            POWER_UNIT=$(( 0x$RAPL_UNIT & 0xF ))
+            POWER_WATTS=$(awk "BEGIN {printf \"%.6f\", 1 / (2 ^ $POWER_UNIT)}")
+            echo "  Power Unit: ${POWER_WATTS} W"
+            
+            TIME_UNIT=$(( (0x$RAPL_UNIT >> 16) & 0xF ))
+            TIME_SECONDS=$(awk "BEGIN {printf \"%.6f\", 1 / (2 ^ $TIME_UNIT)}")
+            echo "  Time Unit: ${TIME_SECONDS} s"
+        fi
+        
+        # Uncore Frequency (Ring/LLC) - MSR_UNCORE_RATIO_LIMIT (0x620)
+        if UNCORE_RATIO=$(rdmsr -p 0 0x620 2>/dev/null); then
+            echo ""
+            echo "Uncore (Ring/LLC) Frequency Limits (MSR 0x620):"
+            MIN_RATIO=$(( 0x$UNCORE_RATIO & 0x7F ))
+            MAX_RATIO=$(( (0x$UNCORE_RATIO >> 8) & 0x7F ))
+            
+            if [ $MIN_RATIO -gt 0 ]; then
+                MIN_FREQ=$((MIN_RATIO * 100))
+                echo "  Min Uncore Frequency: ${MIN_RATIO}x (${MIN_FREQ} MHz)"
+            fi
+            if [ $MAX_RATIO -gt 0 ]; then
+                MAX_FREQ=$((MAX_RATIO * 100))
+                echo "  Max Uncore Frequency: ${MAX_RATIO}x (${MAX_FREQ} MHz)"
+            fi
+        fi
+        
+        # Current Uncore Frequency - MSR_UNCORE_PERF_STATUS (0x621)
+        if UNCORE_STATUS=$(rdmsr -p 0 0x621 2>/dev/null); then
+            CURRENT_RATIO=$(( 0x$UNCORE_STATUS & 0x7F ))
+            if [ $CURRENT_RATIO -gt 0 ]; then
+                CURRENT_FREQ=$((CURRENT_RATIO * 100))
+                echo "  Current Uncore Frequency: ${CURRENT_RATIO}x (${CURRENT_FREQ} MHz)"
+            fi
+        fi
+        
+        # Hardware Prefetcher Control - MSR_MISC_FEATURE_CONTROL (0x1A4)
+        if PREFETCH_CTRL=$(rdmsr -p 0 0x1A4 2>/dev/null); then
+            echo ""
+            echo "Hardware Prefetcher Control (MSR 0x1A4):"
+            
+            L2_HW_PREFETCH=$(( (0x$PREFETCH_CTRL >> 0) & 0x1 ))
+            L2_ADJ_PREFETCH=$(( (0x$PREFETCH_CTRL >> 1) & 0x1 ))
+            DCU_PREFETCH=$(( (0x$PREFETCH_CTRL >> 2) & 0x1 ))
+            DCU_IP_PREFETCH=$(( (0x$PREFETCH_CTRL >> 3) & 0x1 ))
+            
+            [ $L2_HW_PREFETCH -eq 0 ] && echo "  L2 Hardware Prefetcher: Enabled" || echo "  L2 Hardware Prefetcher: Disabled"
+            [ $L2_ADJ_PREFETCH -eq 0 ] && echo "  L2 Adjacent Cache Line Prefetcher: Enabled" || echo "  L2 Adjacent Cache Line Prefetcher: Disabled"
+            [ $DCU_PREFETCH -eq 0 ] && echo "  DCU Hardware Prefetcher: Enabled" || echo "  DCU Hardware Prefetcher: Disabled"
+            [ $DCU_IP_PREFETCH -eq 0 ] && echo "  DCU IP Prefetcher: Enabled" || echo "  DCU IP Prefetcher: Disabled"
+        fi
+        
+        # DRAM RAPL Domain Energy - MSR_DRAM_ENERGY_STATUS (0x619)
+        if DRAM_ENERGY=$(rdmsr -p 0 0x619 2>/dev/null); then
+            ENERGY_RAW=$(( 0x$DRAM_ENERGY & 0xFFFFFFFF ))
+            ENERGY_UNIT=${ENERGY_UNIT:-0.000061}
+            DRAM_JOULES=$(awk "BEGIN {printf \"%.2f\", $ENERGY_RAW * $ENERGY_UNIT}")
+            
+            echo ""
+            echo "DRAM Energy Status (MSR 0x619):"
+            echo "  DRAM Energy Consumed: ${DRAM_JOULES} J (since last reset)"
+        fi
+        
+        # PP0 (Core) Energy Status - MSR_PP0_ENERGY_STATUS (0x639)
+        if PP0_ENERGY=$(rdmsr -p 0 0x639 2>/dev/null); then
+            ENERGY_RAW=$(( 0x$PP0_ENERGY & 0xFFFFFFFF ))
+            PP0_JOULES=$(awk "BEGIN {printf \"%.2f\", $ENERGY_RAW * $ENERGY_UNIT}")
+            
+            echo ""
+            echo "PP0 (Core) Energy Status (MSR 0x639):"
+            echo "  Core Energy Consumed: ${PP0_JOULES} J (since last reset)"
+        fi
+        
+        # PP1 (Graphics) Energy Status - MSR_PP1_ENERGY_STATUS (0x641)
+        if PP1_ENERGY=$(rdmsr -p 0 0x641 2>/dev/null); then
+            ENERGY_RAW=$(( 0x$PP1_ENERGY & 0xFFFFFFFF ))
+            PP1_JOULES=$(awk "BEGIN {printf \"%.2f\", $ENERGY_RAW * $ENERGY_UNIT}")
+            
+            echo ""
+            echo "PP1 (Graphics) Energy Status (MSR 0x641):"
+            echo "  Graphics Energy Consumed: ${PP1_JOULES} J (since last reset)"
+        fi
+        
+        # Platform Energy Counter - MSR_PLATFORM_ENERGY_COUNTER (0x64D)
+        if PLATFORM_ENERGY=$(rdmsr -p 0 0x64D 2>/dev/null); then
+            ENERGY_RAW=$(( 0x$PLATFORM_ENERGY & 0xFFFFFFFF ))
+            PLATFORM_JOULES=$(awk "BEGIN {printf \"%.2f\", $ENERGY_RAW * $ENERGY_UNIT}")
+            
+            echo ""
+            echo "Platform Energy Counter (MSR 0x64D):"
+            echo "  Platform Energy Consumed: ${PLATFORM_JOULES} J (since last reset)"
+        fi
+        
+        # DRAM Power Limit - MSR_DRAM_POWER_LIMIT (0x618)
+        if DRAM_POWER_LIMIT=$(rdmsr -p 0 0x618 2>/dev/null); then
+            echo ""
+            echo "DRAM Power Limits (MSR 0x618):"
+            
+            DRAM_PL=$(( 0x$DRAM_POWER_LIMIT & 0x7FFF ))
+            DRAM_WATTS=$(awk "BEGIN {printf \"%.2f\", $DRAM_PL / 8}")
+            echo "  DRAM Power Limit: ${DRAM_WATTS} W"
+            
+            DRAM_ENABLE=$(( (0x$DRAM_POWER_LIMIT >> 15) & 0x1 ))
+            [ $DRAM_ENABLE -eq 1 ] && echo "    Enabled: Yes" || echo "    Enabled: No"
+        fi
+        
+        # Fixed Performance Counters
+        echo ""
+        echo "Fixed Performance Counters:"
+        
+        # Instructions Retired - MSR_PERF_FIXED_CTR0 (0x309)
+        if FIXED_CTR0=$(rdmsr -p 0 0x309 2>/dev/null); then
+            echo "  Instructions Retired (MSR 0x309): 0x${FIXED_CTR0}"
+        fi
+        
+        # Core Cycles - MSR_PERF_FIXED_CTR1 (0x30A)
+        if FIXED_CTR1=$(rdmsr -p 0 0x30A 2>/dev/null); then
+            echo "  Core Cycles (MSR 0x30A): 0x${FIXED_CTR1}"
+        fi
+        
+        # Reference Cycles - MSR_PERF_FIXED_CTR2 (0x30B)
+        if FIXED_CTR2=$(rdmsr -p 0 0x30B 2>/dev/null); then
+            echo "  Reference Cycles (MSR 0x30B): 0x${FIXED_CTR2}"
+        fi
+        
+        # TSC Frequency - MSR_PLATFORM_INFO (0xCE)
+        if PLATFORM_INFO=$(rdmsr -p 0 0xCE 2>/dev/null); then
+            echo ""
+            echo "Platform Info (MSR 0xCE):"
+            
+            MAX_NON_TURBO=$(( (0x$PLATFORM_INFO >> 8) & 0xFF ))
+            if [ $MAX_NON_TURBO -gt 0 ]; then
+                BASE_FREQ=$((MAX_NON_TURBO * 100))
+                echo "  Max Non-Turbo Ratio: ${MAX_NON_TURBO}x"
+                echo "  Base Frequency: ${BASE_FREQ} MHz"
+            fi
+            
+            MIN_RATIO=$(( (0x$PLATFORM_INFO >> 40) & 0xFF ))
+            if [ $MIN_RATIO -gt 0 ]; then
+                MIN_FREQ=$((MIN_RATIO * 100))
+                echo "  Min Operating Ratio: ${MIN_RATIO}x (${MIN_FREQ} MHz)"
+            fi
+            
+            MAX_EFFICIENCY=$(( (0x$PLATFORM_INFO >> 48) & 0xFF ))
+            if [ $MAX_EFFICIENCY -gt 0 ]; then
+                EFF_FREQ=$((MAX_EFFICIENCY * 100))
+                echo "  Max Efficiency Ratio: ${MAX_EFFICIENCY}x (${EFF_FREQ} MHz)"
+            fi
+        fi
+        
+        # Turbo Activation Ratio - MSR_TURBO_ACTIVATION_RATIO (0x64C)
+        if TURBO_ACTIVATION=$(rdmsr -p 0 0x64C 2>/dev/null); then
+            ACTIVATION_RATIO=$(( 0x$TURBO_ACTIVATION & 0xFF ))
+            if [ $ACTIVATION_RATIO -gt 0 ]; then
+                ACT_FREQ=$((ACTIVATION_RATIO * 100))
+                echo ""
+                echo "Turbo Activation Ratio (MSR 0x64C): ${ACTIVATION_RATIO}x (${ACT_FREQ} MHz)"
+            fi
+        fi
+        
+        # Config TDP Control - MSR_CONFIG_TDP_CONTROL (0x64B)
+        if CONFIG_TDP=$(rdmsr -p 0 0x64B 2>/dev/null); then
+            TDP_LEVEL=$(( 0x$CONFIG_TDP & 0x3 ))
+            echo ""
+            echo "Config TDP Level (MSR 0x64B): $TDP_LEVEL"
+        fi
+        
+        # SMI Counter - MSR_SMI_COUNT (0x34)
+        if SMI_COUNT=$(rdmsr -p 0 0x34 2>/dev/null); then
+            SMI_NUM=$(( 0x$SMI_COUNT & 0xFFFFFFFF ))
+            echo ""
+            echo "SMI Count (MSR 0x34):"
+            echo "  Total SMI Interrupts: $SMI_NUM"
+            [ $SMI_NUM -gt 10000 ] && echo "  WARNING: High SMI count may impact performance!"
+        fi
+        
+        # Machine Check Status
+        echo ""
+        echo "Machine Check Status:"
+        
+        # MCG_STATUS - MSR_MCG_STATUS (0x17A)
+        if MCG_STATUS=$(rdmsr -p 0 0x17A 2>/dev/null); then
+            MCIP=$(( (0x$MCG_STATUS >> 2) & 0x1 ))
+            RIPV=$(( (0x$MCG_STATUS >> 0) & 0x1 ))
+            EIPV=$(( (0x$MCG_STATUS >> 1) & 0x1 ))
+            
+            echo "  MCG_STATUS (MSR 0x17A): 0x${MCG_STATUS}"
+            [ $MCIP -eq 1 ] && echo "    Machine Check In Progress: Yes" || echo "    Machine Check In Progress: No"
+        fi
+        
+        # IA32_MCG_CAP - Machine Check Capabilities (0x179)
+        if MCG_CAP=$(rdmsr -p 0 0x179 2>/dev/null); then
+            MCG_COUNT=$(( 0x$MCG_CAP & 0xFF ))
+            echo "  Machine Check Banks Available: $MCG_COUNT"
+        fi
+        
+        # HWP (Hardware P-States) - MSR_HWP_CAPABILITIES (0x771)
+        if HWP_CAP=$(rdmsr -p 0 0x771 2>/dev/null); then
+            echo ""
+            echo "Hardware P-States (HWP) Capabilities (MSR 0x771):"
+            
+            HIGHEST_PERF=$(( 0x$HWP_CAP & 0xFF ))
+            GUARANTEED_PERF=$(( (0x$HWP_CAP >> 8) & 0xFF ))
+            EFFICIENT_PERF=$(( (0x$HWP_CAP >> 16) & 0xFF ))
+            LOWEST_PERF=$(( (0x$HWP_CAP >> 24) & 0xFF ))
+            
+            echo "  Highest Performance: $HIGHEST_PERF"
+            echo "  Guaranteed Performance: $GUARANTEED_PERF"
+            echo "  Most Efficient Performance: $EFFICIENT_PERF"
+            echo "  Lowest Performance: $LOWEST_PERF"
+        fi
+        
+        # HWP Request - MSR_HWP_REQUEST (0x774)
+        if HWP_REQ=$(rdmsr -p 0 0x774 2>/dev/null); then
+            echo ""
+            echo "HWP Request (MSR 0x774):"
+            
+            MIN_PERF=$(( 0x$HWP_REQ & 0xFF ))
+            MAX_PERF=$(( (0x$HWP_REQ >> 8) & 0xFF ))
+            DESIRED_PERF=$(( (0x$HWP_REQ >> 16) & 0xFF ))
+            EPP=$(( (0x$HWP_REQ >> 24) & 0xFF ))
+            
+            echo "  Minimum Performance: $MIN_PERF"
+            echo "  Maximum Performance: $MAX_PERF"
+            echo "  Desired Performance: $DESIRED_PERF"
+            echo "  Energy Performance Preference: $EPP"
+        fi
+        
+        echo ""
+        echo "Note: MSR values are read from CPU 0 only."
+        echo "For per-core analysis, use: rdmsr -a <MSR_ADDRESS>"
     fi
 fi
 

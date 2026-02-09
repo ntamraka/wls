@@ -1,0 +1,4 @@
+Iteration,Script,Idle_Latency_ns,ReadOnly_BW_MBps,Read_Write_3to1_BW_MBps,Read_Write_2to1_BW_MBps,Read_Write_1to1_BW_MBps,Read_NT_Write_2to1_BW_MBps,Read_NT_Write_1to1_BW_MBps,NT_Write_Only_BW_MBps
+1,run_mlc.sh,145.0,644128.3,527788.9,503249.0,456743.8,495845.0,460531.7,426745.3
+1,run_mlc_with_sleep.sh,144.5,631693.7,563355.6,561587.3,525764.1,564459.4,526528.2,477123.6
+1,run_mlc_witout_wait.sh,144.6,643885.3,515247.4,504207.0,455325.4,495486.0,473989.4,424818.6
