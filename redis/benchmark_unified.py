@@ -16,38 +16,37 @@ import re
 # Configuration for different benchmark types
 BENCHMARK_CONFIGS = {
     'ping': {
-        'hostnames': ['192.168.200.2', '192.168.200.3', '192.168.200.4', 
-                      '192.168.200.5', '192.168.200.6', '192.168.200.7'],
-        'startports': ['16000', '16001', '16002', '16003', '16004', '16005'],
+        'hostnames': ['192.168.200.5','192.168.200.11'],
+        'startports': ['16000','16001'],
         'redis_server': '192.168.200.1',
         'test_time': 100,
-        'seq_step': 6,
+        'seq_step': 2,
         'command': 'ping',
         'ratio': None,
     },
     'read': {
-        'hostnames': ['192.168.100.2', '192.168.100.3'],
+        'hostnames': ['192.168.200.5', '192.168.200.11'],
         'startports': ['16000', '16001'],
-        'redis_server': '192.168.100.1',
-        'test_time': 80,
+        'redis_server': '192.168.200.1',
+        'test_time': 100,
         'seq_step': 2,
         'command': None,
         'ratio': '0:1',  # 100% read
     },
     'write': {
-        'hostnames': ['192.168.100.2', '192.168.100.3'],
+        'hostnames': ['192.168.200.5', '192.168.200.11'],
         'startports': ['16000', '16001'],
-        'redis_server': '192.168.100.1',
-        'test_time': 80,
+        'redis_server': '192.168.200.1',
+        'test_time': 100,
         'seq_step': 2,
         'command': None,
         'ratio': '1:0',  # 100% write
     },
     'readwrite': {
-        'hostnames': ['192.168.100.2', '192.168.100.3'],
+        'hostnames': ['192.168.200.5', '192.168.200.11'],
         'startports': ['16000', '16001'],
-        'redis_server': '192.168.100.1',
-        'test_time': 80,
+        'redis_server': '192.168.200.1',
+        'test_time': 100,
         'seq_step': 2,
         'command': None,
         'ratio': '1:1',  # 50/50 read/write
@@ -403,8 +402,8 @@ def main():
     # Get SSH credentials
     port = args.port
     username = args.username
-    #password = os.getenv('SSH_PASSWORD', 'dcso@123')
-    password = os.getenv('SSH_PASSWORD', 'Password123!23')
+    password = os.getenv('SSH_PASSWORD', 'dcso@123')
+    #password = os.getenv('SSH_PASSWORD', 'Password123!23')
     
     if not password:
         log_error("SSH_PASSWORD environment variable not set")

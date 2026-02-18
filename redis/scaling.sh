@@ -36,7 +36,7 @@ for pipe in 1
 do
     # Loop through core counts (modify as needed)
     #for core in $(seq 16 16 144);
-    for core in 288
+    for core in 48
     do 
         # Loop through data sizes (modify as needed)
         for size in 64
@@ -54,13 +54,13 @@ do
             OUTPUT_FILE="${RESULTS_DIR}/Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
             
             # Direct execution with output saved to results directory
-            python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
+            #python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
             
             # Option 2: With TMC wrapper (uncomment if using TMC)
-            # python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis \
-            #     -G Redis_study_scale -r 30 -t 60 -i redis \
-            #     -a ${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME} \
-            #     -c "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
+             python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis \
+                 -G DMR_Redis_Benchmark -r 30 -t 60 -i redis \
+                 -a ${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME} \
+                 -c "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
             
             sleep 5
         done
@@ -81,7 +81,7 @@ echo "=============================================="
 # Determine number of clients based on operation
 case "$OPERATION" in
     ping)
-        NUM_CLIENTS=6
+        NUM_CLIENTS=2
         ;;
     read|write|readwrite)
         NUM_CLIENTS=2
@@ -189,5 +189,5 @@ if [ -f "$OUTPUT_CSV" ]; then
     echo "=============================================="
     echo ""
     echo "Recent entries:"
-    tail -5 "$GLOBAL_SUMMARY" | column -t -s ','
+    tail -10 "$GLOBAL_SUMMARY" | column -t -s ','
 fi

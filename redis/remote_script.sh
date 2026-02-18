@@ -13,14 +13,14 @@ killall -9 memtier_benchmark 2>/dev/null
 # Array to store PIDs
 declare -a pids
 
-for j in $(seq 1 6 ${pcpu}); do
+for j in $(seq 1 2 ${pcpu}); do
     portp=$(($4 + j))
     
     taskset -c $x memtier_benchmark \
         -s $REDIS_SERVER -p ${portp} \
-        --threads=10 --test-time 100 --pipeline=$3 \
-        --hide-histogram --command='ping' \
-        --clients=20 --data-size=64 \
+        --threads=1 --test-time 80 \
+        --clients=100 --data-size=$2 \
+        --ratio=1:0 --pipeline=$3 \
         --out-file=${LOG_DIR}/log_${portp} &
     
     pids[$x]=$!
