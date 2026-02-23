@@ -402,8 +402,8 @@ def main():
     # Get SSH credentials
     port = args.port
     username = args.username
-    password = os.getenv('SSH_PASSWORD', 'dcso@123')
-    #password = os.getenv('SSH_PASSWORD', 'Password123!23')
+    #password = os.getenv('SSH_PASSWORD', 'dcso@123')
+    password = os.getenv('SSH_PASSWORD', 'Password123!23')
     
     if not password:
         log_error("SSH_PASSWORD environment variable not set")
