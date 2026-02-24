@@ -1,0 +1,96 @@
+Module                  Size  Used by
+nf_tables             376832  0
+sepint5              3608576  0
+pax                    16384  0
+ufs                   126976  0
+qnx4                   12288  0
+hfsplus               139264  0
+hfs                    77824  0
+minix                  49152  0
+ntfs                  139264  0
+msdos                  16384  0
+jfs                   299008  0
+nls_ucs2_utils          8192  1 jfs
+xfs                  2367488  0
+cpuid                  12288  0
+qrtr                   53248  2
+cfg80211             1355776  0
+binfmt_misc            24576  1
+x86_pkg_temp_thermal    20480  0
+coretemp               24576  0
+kvm_intel             487424  0
+cxl_pmem               24576  0
+ipmi_ssif              45056  0
+kvm                  1409024  1 kvm_intel
+dax_hmem               16384  0
+ast                   118784  0
+bnxt_re               184320  0
+irqbypass              12288  1 kvm
+acpi_ipmi              24576  0
+cxl_acpi               24576  0
+ipmi_si                86016  1
+cxl_port               16384  0
+ipmi_devintf           16384  0
+cxl_core              299008  3 cxl_pmem,cxl_port,cxl_acpi
+ipmi_msghandler        94208  4 ipmi_devintf,ipmi_si,acpi_ipmi,ipmi_ssif
+nls_iso8859_1          12288  1
+joydev                 32768  0
+input_leds             12288  0
+pfr_update             20480  0
+pfr_telemetry          16384  0
+mac_hid                12288  0
+sch_fq_codel           24576  21
+dm_multipath           45056  0
+efi_pstore             12288  0
+msr                    12288  0
+nfnetlink              20480  3 nf_tables
+dmi_sysfs              24576  0
+ip_tables              32768  0
+x_tables               65536  1 ip_tables
+autofs4                57344  2
+hid_generic            12288  0
+usbhid                 77824  0
+hid                   180224  2 usbhid,hid_generic
+btrfs                2043904  0
+blake2b_generic        24576  0
+raid10                 73728  0
+raid456               196608  0
+async_raid6_recov      20480  1 raid456
+async_memcpy           16384  2 raid456,async_raid6_recov
+async_pq               20480  2 raid456,async_raid6_recov
+async_xor              16384  3 async_pq,raid456,async_raid6_recov
+async_tx               16384  5 async_pq,async_memcpy,async_xor,raid456,async_raid6_recov
+xor                    20480  2 async_xor,btrfs
+raid6_pq              126976  4 async_pq,btrfs,raid456,async_raid6_recov
+libcrc32c              12288  4 btrfs,nf_tables,xfs,raid456
+raid1                  57344  0
+raid0                  24576  0
+mlx5_ib               487424  0
+ib_uverbs             184320  2 bnxt_re,mlx5_ib
+macsec                 77824  1 mlx5_ib
+ib_core               507904  3 bnxt_re,ib_uverbs,mlx5_ib
+mlx5_core            2494464  1 mlx5_ib
+crct10dif_pclmul       12288  1
+mlxfw                  36864  1 mlx5_core
+crc32_pclmul           12288  0
+igb                   319488  0
+bnxt_en               417792  1 bnxt_re
+psample                16384  1 mlx5_core
+polyval_clmulni        12288  0
+nvme                   61440  2
+polyval_generic        12288  1 polyval_clmulni
+ghash_clmulni_intel    16384  0
+tls                   155648  1 mlx5_core
+sha256_ssse3           32768  0
+sha1_ssse3             32768  0
+i2c_algo_bit           16384  2 igb,ast
+pci_hyperv_intf        12288  1 mlx5_core
+nvme_core             212992  6 nvme
+dca                    16384  1 igb
+xhci_pci               24576  0
+nvme_auth              28672  1 nvme_core
+xhci_pci_renesas       20480  1 xhci_pci
+pinctrl_intel_platform    12288  0
+aesni_intel           356352  0
+crypto_simd            16384  1 aesni_intel
+cryptd                 24576  2 crypto_simd,ghash_clmulni_intel

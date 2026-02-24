@@ -16,7 +16,7 @@ import re
 # Configuration for different benchmark types
 BENCHMARK_CONFIGS = {
     'ping': {
-        'hostnames': ['192.168.200.5','192.168.200.11'],
+        'hostnames': ['192.168.200.11','192.168.200.5'],
         'startports': ['16000','16001'],
         'redis_server': '192.168.200.1',
         'test_time': 100,
@@ -180,8 +180,9 @@ def parse_benchmark_output(output, hostname):
     try:
         metrics = {'hostname': hostname}
         
-        # Extract IOPS/throughput
-        iops_match = re.search(r'total number of IOPS.*?(\d+\.?\d*)', output)
+        # Extract IOPS/throughput - the IOPS value is at the END of the line
+        # Format: "total number of IOPS for 32  Instance  38136.4"
+        iops_match = re.search(r'total number of IOPS for\s+\d+\s+Instance\s+(\d+\.?\d*)', output)
         if iops_match:
             metrics['iops'] = float(iops_match.group(1))
         

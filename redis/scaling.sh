@@ -1,16 +1,33 @@
 #!/bin/bash
 
 # Unified Scaling Script for Redis Benchmarks
-# Usage: ./scaling_unified.sh <operation> <name>
+# Usage: ./scaling_unified.sh <operation> <name> [--emon]
 # Operations: ping, read, write, readwrite
 
 OPERATION=$1
 NAME=$2
+EMON_ENABLED=false
+
+# Parse optional flags
+shift 2 2>/dev/null
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --emon|-e)
+            EMON_ENABLED=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            shift
+            ;;
+    esac
+done
 
 if [ -z "$OPERATION" ] || [ -z "$NAME" ]; then
-    echo "Usage: $0 <operation> <name>"
+    echo "Usage: $0 <operation> <name> [--emon]"
     echo "Operations: ping, read, write, readwrite"
     echo "Example: $0 ping Core_Scaling_Test_Run1"
+    echo "Example with EMON: $0 ping Core_Scaling_Test_Run1 --emon"
     exit 1
 fi
 
@@ -18,6 +35,7 @@ fi
 case "$OPERATION" in
     ping|read|write|readwrite)
         echo "Running $OPERATION benchmark with name: $NAME"
+        echo "EMON enabled: $EMON_ENABLED"
         ;;
     *)
         echo "Error: Invalid operation '$OPERATION'"
@@ -32,14 +50,14 @@ mkdir -p "$RESULTS_DIR"
 echo "Results will be saved to: $RESULTS_DIR"
 
 # Loop through pipeline depths (modify as needed)
-for pipe in 1
+for pipe in 1 
 do
     # Loop through core counts (modify as needed)
     #for core in $(seq 16 16 144);
-    for core in 48
+    for core in 32 
     do 
         # Loop through data sizes (modify as needed)
-        for size in 64
+        for size in 64 
         do
             echo ""
             echo "=============================================="
@@ -53,14 +71,18 @@ do
             # Output file path in results directory
             OUTPUT_FILE="${RESULTS_DIR}/Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
             
-            # Direct execution with output saved to results directory
-            #python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
-            
-            # Option 2: With TMC wrapper (uncomment if using TMC)
-             python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis \
-                 -G DMR_Redis_Benchmark -r 30 -t 60 -i redis \
-                 -a ${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME} \
-                 -c "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
+            if [ "$EMON_ENABLED" = true ]; then
+                # With TMC/EMON wrapper
+                echo "Running with EMON profiling..."
+                python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis -e '/opt/intel/sep/config/edp/diamondrapids_server_events_private.txt' \
+                     -G DMR_Redis_Benchmark -r 30 -t 60 -i redis \
+                     -a ${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME} \
+                     -c "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee $OUTPUT_FILE"
+            else
+                # Direct execution without EMON
+                echo "Running without EMON profiling..."
+                python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
+            fi
             
             sleep 5
         done

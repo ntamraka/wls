@@ -1,0 +1,14 @@
+prefetchers_0x6d:40040000000
+configuration_prefetcher_0x1A4:0
+c_state_control_power_0x1FC:a0084005e
+hwp_enable_0x770:1
+hwp_state_request_0x774:80001f08
+turbo_limits_1_0x1AD:16161616171a1c1f
+turbo_limits_2_0x1AE:101010100e0c0a08
+uncore_freq_prog_0x620:0
+turbo_enabled_0x1A0:811089
+BIAS_setting_0x1B0:6
+freq_prog_0x199:800
+Pckg_C_state control_0xE2:22
+platform_info_0xCE:4080cfd800d00
+IA_PERF_lIMIT_REASONS_0x64F:0
