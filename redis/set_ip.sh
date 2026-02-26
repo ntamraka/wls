@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### <<< CONFIG >>> ###
-IFACE="ens6np0"
+IFACE="ens785np0"
 BASE_NETWORK="192.168.200."   # Everything before last octet
 CIDR="/24"
 GATEWAY=""     # Optional: e.g., 192.168.200.254 or leave blank
