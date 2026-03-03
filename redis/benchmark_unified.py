@@ -16,18 +16,18 @@ import re
 # Configuration for different benchmark types
 BENCHMARK_CONFIGS = {
     'ping': {
-        'hostnames': ['192.168.200.11','192.168.200.5'],
-        'startports': ['16000','16001'],
-        'redis_server': '192.168.200.1',
+        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'startports': ['16000', '16001', '16002', '16003'],
+        'redis_server': '10.140.129.84',
         'test_time': 100,
-        'seq_step': 2,
+        'seq_step': 4,
         'command': 'ping',
         'ratio': None,
     },
     'read': {
-        'hostnames': ['192.168.200.5', '192.168.200.11'],
-        'startports': ['16000', '16001'],
-        'redis_server': '192.168.200.1',
+        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'startports': ['16000', '16001', '16002', '16003'],
+        'redis_server': '10.140.129.84',
         'test_time': 100,
         'seq_step': 2,
         'command': None,
@@ -403,8 +403,8 @@ def main():
     # Get SSH credentials
     port = args.port
     username = args.username
-    #password = os.getenv('SSH_PASSWORD', 'dcso@123')
-    password = os.getenv('SSH_PASSWORD', 'Password123!23')
+    password = os.getenv('SSH_PASSWORD', 'dcso@123')
+    #password = os.getenv('SSH_PASSWORD', 'Password123!23')
     
     if not password:
         log_error("SSH_PASSWORD environment variable not set")

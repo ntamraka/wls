@@ -50,19 +50,16 @@ mkdir -p "$RESULTS_DIR"
 echo "Results will be saved to: $RESULTS_DIR"
 
 # Loop through pipeline depths (modify as needed)
-for pipe in 1 
+for pipe in 1
 do
-    # Loop through core counts (modify as needed)
-    #for core in $(seq 16 16 144);
-    for core in 32 
-    do 
-        # Loop through data sizes (modify as needed)
+    for core in 56
+    do     
         for size in 64 
-        do
+        do         
             echo ""
-            echo "=============================================="
-            echo "Running: Operation=$OPERATION Pipe=$pipe Core=$core Size=$size"
-            echo "=============================================="
+            echo "================================================================"
+            echo "Running: Operation=$OPERATION Pipe=$pipe Core=$core Size=$size  "
+            echo "================================================================"
             echo ""
             
             # Run the unified benchmark
@@ -168,7 +165,7 @@ for FILE in ${RESULTS_DIR}/Redis_${OPERATION}_pipe-*_${NAME}.txt ; do
         
         # Write the results to the CSV file
         echo "$CSV_ROW" >> "$OUTPUT_CSV"
-        
+
         echo "Processed: $FILE -> Total IOPS: $TOTAL (Avg per client: $AVERAGE)"
     fi
 done
@@ -211,5 +208,5 @@ if [ -f "$OUTPUT_CSV" ]; then
     echo "=============================================="
     echo ""
     echo "Recent entries:"
-    tail -10 "$GLOBAL_SUMMARY" | column -t -s ','
+    tail -100 "$GLOBAL_SUMMARY" | column -t -s ','
 fi

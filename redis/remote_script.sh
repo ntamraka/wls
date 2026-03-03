@@ -2,7 +2,7 @@
 
 pcpu=$1
 x=0
-REDIS_SERVER="192.168.200.1"
+REDIS_SERVER="10.140.129.84"
 LOG_DIR="/root/wls/redis/memtier_benchmark/log_${1}"
 
 # Cleanup previous runs
@@ -13,7 +13,7 @@ killall -9 memtier_benchmark 2>/dev/null
 # Array to store PIDs
 declare -a pids
 
-for j in $(seq 1 2 ${pcpu}); do
+for j in $(seq 1 4 ${pcpu}); do
     portp=$(($4 + j))
     
     taskset -c $x memtier_benchmark \

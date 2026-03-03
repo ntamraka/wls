@@ -1,7 +1,7 @@
 #!/bin/bash
 
 pcpu=$1  # Number of instances (each bound to a different physical core)
-x=0      # Start binding from core
+x=0 # Start binding from core
 
 for j in $(seq 1 ${pcpu}); do
     portp=$((16000 + j))  # Redis port
