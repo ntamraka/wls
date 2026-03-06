@@ -1,15 +1,16 @@
 #!/bin/bash
 
 # Unified Scaling Script for Redis Benchmarks
-# Usage: ./scaling_unified.sh <operation> <name> [--emon]
+# Usage: ./scaling_unified.sh <operation> <name> <cores> [--emon]
 # Operations: ping, read, write, readwrite
 
 OPERATION=$1
 NAME=$2
+CORES=$3
 EMON_ENABLED=false
 
 # Parse optional flags
-shift 2 2>/dev/null
+shift 3 2>/dev/null
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --emon|-e)
@@ -23,11 +24,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ -z "$OPERATION" ] || [ -z "$NAME" ]; then
-    echo "Usage: $0 <operation> <name> [--emon]"
+if [ -z "$OPERATION" ] || [ -z "$NAME" ] || [ -z "$CORES" ]; then
+    echo "Usage: $0 <operation> <name> <cores> [--emon]"
     echo "Operations: ping, read, write, readwrite"
-    echo "Example: $0 ping Core_Scaling_Test_Run1"
-    echo "Example with EMON: $0 ping Core_Scaling_Test_Run1 --emon"
+    echo "Example: $0 ping Core_Scaling_Test_Run1 56"
+    echo "Example with EMON: $0 ping Core_Scaling_Test_Run1 56 --emon"
     exit 1
 fi
 
@@ -35,6 +36,7 @@ fi
 case "$OPERATION" in
     ping|read|write|readwrite)
         echo "Running $OPERATION benchmark with name: $NAME"
+        echo "Cores: $CORES"
         echo "EMON enabled: $EMON_ENABLED"
         ;;
     *)
@@ -52,7 +54,7 @@ echo "Results will be saved to: $RESULTS_DIR"
 # Loop through pipeline depths (modify as needed)
 for pipe in 1
 do
-    for core in 56
+    for core in $CORES
     do     
         for size in 64 
         do         

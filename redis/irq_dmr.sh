@@ -1,14 +1,18 @@
 PCI_DEVICE="b1:00.0"
 
+
 #PCI_DEVICE="2a:00.0"
 
 tune_irq_affinity() {
+    local segments="$1"
+    local step_size="$2"
 
     echo "=============================================="
     echo " IRQ Affinity Tuning Started"
     echo " PCI Device : $PCI_DEVICE"
     echo " Target     : UPTP 224 Core Layout"
-    echo " Policy     : 14 CPUs per segment (4 segments)"
+    echo " Policy     : $step_size CPUs per segment"
+    echo " Segments   : $segments"
     echo "=============================================="
 
     IRQ_NUMS=$(grep "$PCI_DEVICE" /proc/interrupts 2>/dev/null \
@@ -29,15 +33,18 @@ tune_irq_affinity() {
     echo "Building CPU Segments:"
     echo "----------------------------------------------"
 
-    for seg in 2 
+    # Convert segments string to array
+    read -ra segs <<< "$segments"
+
+    for seg in "${segs[@]}"
     do
         BASE=$((seg * 56))
         START=$BASE
-        END=$((BASE + 13))
+        END=$((BASE + step_size - 1))
 
         echo " Segment $seg → CPUs ${START}-${END}"
 
-        for ((i=0;i<14;i++))
+        for ((i=0;i<step_size;i++))
         do
             CPU_LIST+=($((BASE + i)))
         done
@@ -74,4 +81,4 @@ tune_irq_affinity() {
     echo "✅ IRQ affinity tuning completed successfully"
     echo "=============================================="
 }
-tune_irq_affinity
+tune_irq_affinity "$1" "${2:-14}"
