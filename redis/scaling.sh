@@ -7,6 +7,7 @@
 OPERATION=$1
 NAME=$2
 CORES=$3
+PIPE=$4
 EMON_ENABLED=false
 
 # Parse optional flags
@@ -26,7 +27,7 @@ done
 
 if [ -z "$OPERATION" ] || [ -z "$NAME" ] || [ -z "$CORES" ]; then
     echo "Usage: $0 <operation> <name> <cores> [--emon]"
-    echo "Operations: ping, read, write, readwrite"
+    echo "Operations: ping, read, write, readwrite, tls_small"
     echo "Example: $0 ping Core_Scaling_Test_Run1 56"
     echo "Example with EMON: $0 ping Core_Scaling_Test_Run1 56 --emon"
     exit 1
@@ -34,14 +35,14 @@ fi
 
 # Validate operation type
 case "$OPERATION" in
-    ping|read|write|readwrite)
+    ping|read|write|readwrite|tls_small|tls_medium|notls_small | notls_medium)
         echo "Running $OPERATION benchmark with name: $NAME"
         echo "Cores: $CORES"
         echo "EMON enabled: $EMON_ENABLED"
         ;;
     *)
         echo "Error: Invalid operation '$OPERATION'"
-        echo "Valid operations: ping, read, write, readwrite"
+        echo "Valid operations: ping, read, write, readwrite, tls_small, tls_medium, notls_small, notls_medium"
         exit 1
         ;;
 esac
@@ -52,11 +53,11 @@ mkdir -p "$RESULTS_DIR"
 echo "Results will be saved to: $RESULTS_DIR"
 
 # Loop through pipeline depths (modify as needed)
-for pipe in 1
+for pipe in $PIPE
 do
     for core in $CORES
     do     
-        for size in 64 
+        for size in 64
         do         
             echo ""
             echo "================================================================"
@@ -65,7 +66,7 @@ do
             echo ""
             
             # Run the unified benchmark
-            echo "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size}"
+            echo "python3 benchmark_enhanced.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size}"
             
             # Output file path in results directory
             OUTPUT_FILE="${RESULTS_DIR}/Redis_${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME}.txt"
@@ -73,14 +74,14 @@ do
             if [ "$EMON_ENABLED" = true ]; then
                 # With TMC/EMON wrapper
                 echo "Running with EMON profiling..."
-                python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis -e '/opt/intel/sep/config/edp/diamondrapids_server_events_private.txt' \
+                python3 /root/tmc/tmc.py -u -Z metrics2 -n -x ntamraka -d /root/tmc/redis -e '/opt/intel/sep/config/edp/diamondrapids_server_events_private2.txt' \
                      -G DMR_Redis_Benchmark -r 30 -t 60 -i redis \
                      -a ${OPERATION}_pipe-${pipe}_size-${size}_core-${core}_${NAME} \
-                     -c "python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee $OUTPUT_FILE"
+                     -c "python3 benchmark_enhanced.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee $OUTPUT_FILE"
             else
                 # Direct execution without EMON
                 echo "Running without EMON profiling..."
-                python3 benchmark_unified.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
+                python3 benchmark_enhanced.py -o ${OPERATION} -p ${pipe} -c ${core} -s ${size} 2>&1 | tee "$OUTPUT_FILE"
             fi
             
             sleep 5

@@ -3,7 +3,7 @@
 
 # Configuration
 readonly INTERFACE="ens3np0"
-readonly COMBINED_QUEUES=20
+readonly COMBINED_QUEUES=16
 readonly SERVER_CORES=56
 readonly TOTAL_CORES=223
 readonly CORES_PER_SEGMENT=56
@@ -46,6 +46,7 @@ run_segment_benchmark() {
     # IRQ affinity
     log "Configuring IRQ affinity..."
     ./irq_dmr.sh $segment || { log "Failed to configure IRQ for segment $segment"; return 1; }
+    #./irq_affinity_manager.sh $segment $COMBINED_QUEUES || { log "Failed to configure IRQ for segment $segment"; return 1; }
     
     # Run benchmark
     log "Running scaling benchmark..."

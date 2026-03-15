@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/test2/Redis_ping_pipe-16_size-64_core-_test2.txt,,64,16,0,0,0,0

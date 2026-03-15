@@ -16,38 +16,38 @@ import re
 # Configuration for different benchmark types
 BENCHMARK_CONFIGS = {
     'ping': {
-        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'hostnames': ['10.140.129.74', '10.140.129.71', '10.140.129.72','10.140.129.69'],
         'startports': ['16000', '16001', '16002', '16003'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
+        'test_time': 120,
         'seq_step': 4,
         'command': 'ping',
         'ratio': None,
     },
     'read': {
-        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
-        'startports': ['16000', '16001', '16002', '16003'],
+        'hostnames': ['10.140.129.67'],
+        'startports': ['16000'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
-        'seq_step': 2,
+        'test_time': 120,
+        'seq_step': 1,
         'command': None,
         'ratio': '0:1',  # 100% read
     },
     'write': {
-        'hostnames': ['192.168.200.5', '192.168.200.11'],
-        'startports': ['16000', '16001'],
-        'redis_server': '192.168.200.1',
+        'hostnames': ['10.140.129.74', '10.140.129.70', '10.140.129.72', '10.140.129.69'],
+        'startports': ['16000', '16001', '16002', '16003'],
+        'redis_server': '10.140.129.84',
         'test_time': 100,
-        'seq_step': 2,
+        'seq_step': 4,
         'command': None,
         'ratio': '1:0',  # 100% write
     },
     'readwrite': {
-        'hostnames': ['192.168.200.5', '192.168.200.11'],
-        'startports': ['16000', '16001'],
-        'redis_server': '192.168.200.1',
+        'hostnames': ['10.140.129.74', '10.140.129.70', '10.140.129.72', '10.140.129.69'],
+        'startports': ['16000', '16001', '16002', '16003'],
+        'redis_server': '10.140.129.84',
         'test_time': 100,
-        'seq_step': 2,
+        'seq_step': 4,
         'command': None,
         'ratio': '1:1',  # 50/50 read/write
     }
@@ -224,7 +224,7 @@ for j in $(seq 1 {config['seq_step']} ${{pcpu}}); do
     
     taskset -c $x memtier_benchmark \\
         -s $REDIS_SERVER -p ${{portp}} \\
-        --threads=10 --test-time {config['test_time']} --pipeline=$3 \\
+        --threads=56 --test-time {config['test_time']} --pipeline=$3 \\
         --hide-histogram --command='ping' \\
         --clients=20 --data-size=64 \\
         --out-file=${{LOG_DIR}}/log_${{portp}} &

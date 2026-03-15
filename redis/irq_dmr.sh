@@ -1,7 +1,5 @@
 PCI_DEVICE="b1:00.0"
-
-
-#PCI_DEVICE="2a:00.0"
+NIC_NAME="ens3np0"
 
 tune_irq_affinity() {
     local segments="$1"
@@ -10,16 +8,22 @@ tune_irq_affinity() {
     echo "=============================================="
     echo " IRQ Affinity Tuning Started"
     echo " PCI Device : $PCI_DEVICE"
+    echo " NIC        : $NIC_NAME"
     echo " Target     : UPTP 224 Core Layout"
     echo " Policy     : $step_size CPUs per segment"
     echo " Segments   : $segments"
     echo "=============================================="
 
-    IRQ_NUMS=$(grep "$PCI_DEVICE" /proc/interrupts 2>/dev/null \
-        | cut -d: -f1 | tr -d ' ' || true)
+    ############################################
+    # Collect only TxRx IRQs
+    ############################################
+
+    IRQ_NUMS=$(grep "$NIC_NAME" /proc/interrupts \
+        | grep TxRx \
+        | cut -d: -f1 | tr -d ' ')
 
     if [[ -z "$IRQ_NUMS" ]]; then
-        echo "[WARNING] No IRQs found for PCI device $PCI_DEVICE"
+        echo "[WARNING] No TxRx IRQs found for NIC $NIC_NAME"
         return 1
     fi
 
@@ -33,7 +37,6 @@ tune_irq_affinity() {
     echo "Building CPU Segments:"
     echo "----------------------------------------------"
 
-    # Convert segments string to array
     read -ra segs <<< "$segments"
 
     for seg in "${segs[@]}"
@@ -81,4 +84,5 @@ tune_irq_affinity() {
     echo "✅ IRQ affinity tuning completed successfully"
     echo "=============================================="
 }
+
 tune_irq_affinity "$1" "${2:-14}"

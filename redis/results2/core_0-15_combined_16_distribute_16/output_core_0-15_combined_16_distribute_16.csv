@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/core_0-15_combined_16_distribute_16/Redis_ping_pipe-1_size-64_core-16_core_0-15_combined_16_distribute_16.txt,16,64,1,119449,120977,120485,114757,475668,118917.00

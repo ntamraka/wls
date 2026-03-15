@@ -1,7 +1,0 @@
-workload_name:"TF RN50 AMX BF16"
-                metric_type:"Throughput"
-                result:"15000"
-                metric:"img/s"
-                num_instances:2
-                sockets:2
-                notes:"Running TF with memory knob changes"

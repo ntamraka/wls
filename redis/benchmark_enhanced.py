@@ -52,47 +52,51 @@ BENCHMARK_CONFIGS = {
         'ratio': '1:1',  # 50/50 read/write
     },
     'tls_small': {
-        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'hostnames': ['10.140.129.74', '10.140.129.71', '10.140.129.72','10.140.129.69'],
         'startports': ['16000', '16001', '16002', '16003'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
+        'test_time': 120,
         'seq_step': 4,
         'command': None,
         'ratio': '3:7',
         'key_maximum': 800000,
+        'tls': ' --tls ',
         'data_size_list': '100:30,200:40,500:10,1000:10,10000:10',
     },
     'notls_small': {
-        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'hostnames': ['10.140.129.74', '10.140.129.71', '10.140.129.72','10.140.129.69'],
         'startports': ['16000', '16001', '16002', '16003'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
+        'test_time': 120,
         'seq_step': 4,
         'command': None,
         'ratio': '3:7',
         'key_maximum': 800000,
+        'tls': '  ',
         'data_size_list': '100:30,200:40,500:10,1000:10,10000:10',
     },
     'tls_medium': {
-        'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
+        'hostnames': ['10.140.129.74', '10.140.129.71', '10.140.129.72','10.140.129.69'],
         'startports': ['16000', '16001', '16002', '16003'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
+        'test_time': 120,
         'seq_step': 4,
         'command': None,
         'ratio': '3:7',
         'key_maximum': 7000,
+         'tls': ' --tls '
         'data_size_list': '128:12,224:10,760:10,1600:16,2600:21,10000:16,880000:15',
     },
     'notls_medium': {
         'hostnames': ['10.140.129.130', '10.140.129.132', '10.140.129.135', '10.140.129.137'],
         'startports': ['16000', '16001', '16002', '16003'],
         'redis_server': '10.140.129.84',
-        'test_time': 100,
+        'test_time': 120,
         'seq_step': 4,
         'command': None,
         'ratio': '3:7',
         'key_maximum': 800000,
+        'tls': ' ',
         'data_size_list': '1000:20,2000:30,5000:30,10000:20',
     }
 }
@@ -306,7 +310,7 @@ for j in $(seq 1 {config['seq_step']} ${{pcpu}}); do
     
     taskset -c $x memtier_benchmark \\
         -s $REDIS_SERVER -p ${{portp}} \\
-        --threads=10 --test-time {config['test_time']} --pipeline=$3 \\
+        --threads=10 --test-time {config['test_time']} --pipeline=$3 {config['tls']}\\
         --clients=20 \\
         --data-size-list={config['data_size_list']} \\
         --key-maximum={config['key_maximum']}\\

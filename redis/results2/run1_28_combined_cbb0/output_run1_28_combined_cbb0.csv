@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/run1_28_combined_cbb0/Redis_ping_pipe-1_size-64_core-56_run1_28_combined_cbb0.txt,56,64,1,61751.1,61339.8,61246,60425.3,244762.2,61190.55

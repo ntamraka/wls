@@ -1,0 +1,4 @@
+usage: benchmark_unified.py [-h] -o {ping,read,write,readwrite} -c CORE -s
+                            SIZE -p PIPELINE [--username USERNAME]
+                            [--port PORT]
+benchmark_unified.py: error: argument -c/--core: expected one argument

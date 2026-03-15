@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/cbb_scalling_224/Redis_ping_pipe-1_size-64_core-224_cbb_scalling_224.txt,224,64,1,-nan,-nan,-nan,-nan,0,0

@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/cbb_scaling_Core_0-111_CBB1_irq_combined_32_local_pipe_1_size_64/Redis_ping_pipe-1_size-64_core-112_cbb_scaling_Core_0-111_CBB1_irq_combined_32_local_pipe_1_size_64.txt,112,64,1,79230.5,91535.7,50795.9,38763.2,260325.3,65081.32

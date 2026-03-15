@@ -18,10 +18,10 @@ for j in $(seq 1 4 ${pcpu}); do
     
     taskset -c $x memtier_benchmark \
         -s $REDIS_SERVER -p ${portp} \
-        --threads=10 --test-time 100 --pipeline=$3 \
+        --threads=10 --test-time 120 --pipeline=$3 \
         --clients=20 \
-        --data-size-list=100:30,200:40,500:10,1000:10,10000:10 \
-        --key-maximum=800000\
+        --data-size-list=128:12,224:10,760:10,1600:16,2600:21,10000:16,880000:15 \
+        --key-maximum=7000\
         --ratio=3:7 \
         --distinct-client-seed \
         --out-file=${LOG_DIR}/log_${portp} &

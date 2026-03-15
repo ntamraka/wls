@@ -1,0 +1,12 @@
+Redis Cross-NUMA Scaling Benchmark Summary
+==========================================
+Start Time: 2026-03-03 23:53:27
+Interface: ens3np0
+Total Cores: 224
+Test Configurations: 4
+
+Test Plan:
+  Test 1: Single_NUMA_Node (Cores: 56, Queues: 16)
+  Test 2: Dual_NUMA_Nodes (Cores: 112, Queues: 32)
+  Test 3: Triple_NUMA_Nodes (Cores: 168, Queues: 48)
+  Test 4: Quad_NUMA_Nodes (Cores: 224, Queues: 64)

@@ -1,0 +1,3 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/cbb_scaling_Core_0-55_CCB0_irq_combined_14_local_pipe_1_size_64/Redis_ping_pipe-16_size-64_core-56_cbb_scaling_Core_0-55_CCB0_irq_combined_14_local_pipe_1_size_64.txt,56,64,16,611839,1.52446e+06,1.59082e+06,1.48958e+06,,
+results/cbb_scaling_Core_0-55_CCB0_irq_combined_14_local_pipe_1_size_64/Redis_ping_pipe-1_size-64_core-56_cbb_scaling_Core_0-55_CCB0_irq_combined_14_local_pipe_1_size_64.txt,56,64,1,93086.2,99427.4,99558.7,94631.4,386703.7,96675.92

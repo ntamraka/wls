@@ -1,0 +1,7 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/test/Redis_ping_pipe-16_size-64_core-112_test.txt,112,64,16,18802.3,0,18802.3,18802.30
+results/test/Redis_ping_pipe-16_size-64_core-168_test.txt,168,64,16,0,0,0,0
+results/test/Redis_ping_pipe-16_size-64_core-56_test.txt,56,64,16,0,0,0,0
+results/test/Redis_ping_pipe-16_size-64_core-_test.txt,,64,16,0,0,0,0
+results/test/Redis_ping_pipe-1_size-64_core-224_test.txt,224,64,1,16129.8,15997.8,16148.8,16227.9,64504.3,16126.07
+results/test/Redis_ping_pipe-1_size-64_core-56_test.txt,56,64,1,71314.8,71960.4,68206.9,67139.2,278621.3,69655.32

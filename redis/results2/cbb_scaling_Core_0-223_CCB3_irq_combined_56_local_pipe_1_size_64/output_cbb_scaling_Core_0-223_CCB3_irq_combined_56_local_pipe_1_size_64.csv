@@ -1,0 +1,11 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-16_size-128_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,128,16,679581,775009,935828,115752,2506170,626542.50
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-16_size-64_core-112_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,112,64,16,892718,927201,946642,639950,3406511,851627.75
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-16_size-64_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,64,16,683031,699125,724248,607109,2713513,678378.25
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-1_size-64_core-112_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,112,64,1,55496,52476.2,60358.7,54785.9,223116.8,55779.20
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-1_size-64_core-223_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,223,64,1,-nan,-nan,-nan,-nan,0,0
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-1_size-64_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,64,1,0,0,0,0
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-2_size-64_core-112_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,112,64,2,113790,113285,114784,108714,450573,112643.25
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-32_size-64_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,64,32,1.15113e+06,1.17948e+06,1.03065e+06,1.01804e+06,,
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-4_size-64_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,64,4,110145,117766,110313,95652.3,433876.3,108469.07
+results/cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64/Redis_ping_pipe-64_size-64_core-224_cbb_scaling_Core_0-223_CCB3_irq_combined_56_local_pipe_1_size_64.txt,224,64,64,1.76292e+06,1.8787e+06,1.80016e+06,1.40113e+06,,

@@ -1,0 +1,2 @@
+file,core,size,pipe,client1_iops,client2_iops,total_iops,average_iops
+results/redis_run0_cbb4_core56-112_client-4_oob/Redis_ping_pipe-1_size-64_core-56_redis_run0_cbb4_core56-112_client-4_oob.txt,56,64,1,30959.1,36757.9,28740.7,33813.7,130271.4,32567.85
